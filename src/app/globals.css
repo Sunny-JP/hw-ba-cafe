@@ -24,3 +24,20 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* 既存の @tailwind base; などの下に追記 */
+.card {
+  @apply bg-white p-6 rounded-lg shadow-md mb-6;
+}
+
+.card-title {
+  @apply text-xl font-bold mb-3 border-b pb-2 flex items-center gap-2;
+}
+
+.btn {
+  @apply px-4 py-2 rounded-md font-semibold text-white transition-colors duration-200;
+}
+
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400;
+}
