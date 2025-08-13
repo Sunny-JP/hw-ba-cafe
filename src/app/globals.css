@@ -1,43 +1,151 @@
 @import "tailwindcss";
 
+/* ================================== */
+/* Theming & Color Palette (RGB)      */
+/* ================================== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  /* ライトモードの色定義 (RGB値) */
+  --background: 255 255 255; /* Main background */
+  --foreground: 10 10 10; /* Main text */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --card: 255 255 255; /* Card background */
+  --card-foreground: 10 10 10; /* Card text */
+
+  --primary: 37 99 235; /* Primary buttons, links */
+  --primary-foreground: 250 250 250; /* Text on primary buttons */
+
+  --secondary: 244 245 246; /* Secondary backgrounds */
+  --secondary-foreground: 20 20 20; /* Text on secondary backgrounds */
+
+  --muted: 229 231 235; /* Subtle backgrounds, borders */
+  --muted-foreground: 107 114 128; /* Subtle text */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* ダークモードの色定義 (RGB値) */
+    --background: 18 18 18;
+    --foreground: 250 250 250;
+
+    --card: 24 24 27;
+    --card-foreground: 250 250 250;
+
+    --primary: 59 130 246;
+    --primary-foreground: 250 250 250;
+
+    --secondary: 30 30 33;
+    --secondary-foreground: 250 250 250;
+
+    --muted: 30 30 33;
+    --muted-foreground: 156 163 175;
   }
 }
 
+/* ================================== */
+/* Body & Card Base Style             */
+/* ================================== */
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-family: Arial, Helvetica, sans-serif; /* フォントは指定通り */
 }
 
-/* 既存の @tailwind base; などの下に追記 */
 .card {
-  @apply bg-white p-6 rounded-lg shadow-md mb-6;
+  background-color: rgb(var(--card));
+  color: rgb(var(--card-foreground));
+  padding: 1.5rem; /* p-6 */
+  border-radius: 0.5rem; /* rounded-lg */
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* shadow-md */
+  margin-bottom: 1.5rem; /* mb-6 */
 }
 
 .card-title {
-  @apply text-xl font-bold mb-3 border-b pb-2 flex items-center gap-2;
+  display: flex; /* flex */
+  align-items: center; /* items-center */
+  gap: 0.5rem; /* gap-2 */
+  font-size: 1.25rem; /* text-xl */
+  font-weight: 700; /* font-bold */
+  margin-bottom: 0.75rem; /* mb-3 */
+  padding-bottom: 0.5rem; /* pb-2 */
+  border-bottom-width: 1px; /* border-b */
+  border-bottom-color: rgb(var(--muted)); /* 線の色を指定 */
 }
 
+/* ================================== */
+/* Button System (Standard CSS)       */
+/* ================================== */
+
+/* --- ボタンの基本形 --- */
 .btn {
-  @apply px-4 py-2 rounded-md font-semibold text-white transition-colors duration-200;
+  display: inline-block;
+  padding: 0.5rem 1rem; /* py-2 px-4 */
+  font-weight: 600; /* font-semibold */
+  text-align: center;
+  border-radius: 0.375rem; /* rounded-md */
+  transition: all 200ms ease-in-out;
+  cursor: pointer;
+  text-decoration: none; /* aタグでも使えるように */
+  border-width: 2px; /* アウトラインボタンと太さを合わせるため */
+  border-style: solid;
 }
 
+/* --- バリエーション --- */
+
+/* 1. プライマリボタン（塗りつぶし） */
 .btn-primary {
-  @apply bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400;
+  background-color: rgb(var(--primary));
+  color: rgb(var(--primary-foreground));
+  border-color: transparent;
+}
+.btn-primary:hover {
+  filter: brightness(0.9); /* 少し暗くするホバー効果 */
+}
+.btn-primary:disabled {
+  background-color: rgb(var(--muted));
+  color: rgb(var(--muted-foreground));
+  cursor: not-allowed;
+}
+
+/* 2. アウトラインボタン */
+.btn-outline {
+  background-color: transparent;
+  border-color: rgb(var(--muted));
+  color: rgb(var(--foreground));
+}
+.btn-outline:hover {
+  background-color: rgb(var(--secondary));
+  border-color: rgb(var(--muted));
+}
+
+/* アウトラインボタンが選択中のスタイル */
+/* .btn-outline.btn-outline-active のように両方のクラスを持つ要素に適用 */
+.btn-outline.btn-outline-active {
+  background-color: rgb(var(--primary));
+  border-color: rgb(var(--primary));
+  color: rgb(var(--primary-foreground));
+}
+
+/* 3. ゴーストボタン（透明） */
+.btn-ghost {
+  background-color: transparent;
+  border-color: transparent;
+  color: rgb(var(--primary));
+}
+.btn-ghost:hover {
+  background-color: rgb(var(--secondary));
+}
+.btn-ghost:disabled {
+  color: rgb(var(--muted-foreground));
+  cursor: not-allowed;
+}
+
+/* no scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
