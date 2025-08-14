@@ -21,24 +21,22 @@
   --muted-foreground: 107 114 128; /* Subtle text */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* ダークモードの色定義 (RGB値) */
-    --background: 18 18 18;
-    --foreground: 250 250 250;
+.dark {
+  /* ダークモードの色定義 (RGB値) */
+  --background: 18 18 18;
+  --foreground: 250 250 250;
 
-    --card: 24 24 27;
-    --card-foreground: 250 250 250;
+  --card: 24 24 27;
+  --card-foreground: 250 250 250;
 
-    --primary: 59 130 246;
-    --primary-foreground: 250 250 250;
+  --primary: 59 130 246;
+  --primary-foreground: 250 250 250;
 
-    --secondary: 30 30 33;
-    --secondary-foreground: 250 250 250;
+  --secondary: 30 30 33;
+  --secondary-foreground: 250 250 250;
 
-    --muted: 30 30 33;
-    --muted-foreground: 156 163 175;
-  }
+  --muted: 30 30 33;
+  --muted-foreground: 156 163 175;
 }
 
 /* ================================== */

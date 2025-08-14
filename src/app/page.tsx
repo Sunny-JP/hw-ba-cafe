@@ -122,7 +122,7 @@ export default function Home() {
   }
   
   return (
-    <main className="flex flex-col items-center p-4 sm:p-8 text-gray-800">
+    <main className="flex flex-col items-center p-4 sm:p-8 text-foreground">
       <div className="w-full max-w-md mx-auto">
         {!user ? (
           <div className="card text-center">

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import { ThemeProvider } from '@/hooks/useTheme';
 import Header from '@/components/Header';
 import SidePane from '@/components/SidePane';
 import "./globals.css";
@@ -37,7 +38,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <GoogleOAuthProvider clientId={clientId}>
           <AuthProvider>
-            <AppLayout>{children}</AppLayout>
+            <ThemeProvider>
+              <AppLayout>{children}</AppLayout>
+            </ThemeProvider>
           </AuthProvider>
         </GoogleOAuthProvider>
       </body>

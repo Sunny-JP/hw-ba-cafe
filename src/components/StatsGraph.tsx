@@ -60,8 +60,28 @@ export default function StatsGraph({ tapHistory }: StatsGraphProps) {
     const commonOptions: ChartOptions<'line'> = {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { position: 'top' } },
-      scales: { y: { beginAtZero: true, ticks: { stepSize: 2 } } },
+      plugins: { 
+        legend: { 
+          position: 'top',
+          labels: {
+            color: '#999999'
+          }
+        } 
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 2,
+            color: '#999999',
+          },
+        },
+        x: {
+          ticks: {
+            color: '#999999',
+          },
+        },
+      },
     };
 
     let navLabelText = '';
@@ -125,7 +145,7 @@ export default function StatsGraph({ tapHistory }: StatsGraphProps) {
     <div className="space-y-6">
         {/* サマリー表示 */}
         <div>
-            <h3 className="text-lg font-bold mb-2 text-slate-700">サマリー</h3>
+            <h3 className="text-lg font-bold mb-2 text-foreground">サマリー</h3>
             <div className="grid grid-cols-2 gap-4 text-center">
                 <div className="p-4 bg-secondary rounded-lg">
                     <div className="text-sm text-muted-foreground">今日</div>
@@ -148,7 +168,7 @@ export default function StatsGraph({ tapHistory }: StatsGraphProps) {
 
         {/* グラフ表示エリア */}
         <div>
-            <h3 className="text-lg font-bold mb-2 text-slate-700">タップ履歴グラフ</h3>
+            <h3 className="text-lg font-bold mb-2 text-foreground">タップ履歴グラフ</h3>
             <div className="my-4 flex justify-center gap-2">
                 <button
                     onClick={() => setView('daily')}
