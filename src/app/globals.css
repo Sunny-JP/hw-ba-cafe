@@ -147,3 +147,10 @@ body {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+
+/* ================================== */
+/* Side Pane Button Style             */
+/* ================================== */
+.btn-sidepane {
+  @apply w-full flex items-center p-2 rounded-md text-slate-300 hover:bg-gray-700 hover:text-white transition-colors duration-200;
+}
