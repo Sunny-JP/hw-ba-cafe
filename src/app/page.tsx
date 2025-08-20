@@ -6,7 +6,7 @@ import TimerDashboard from "@/components/TimerDashboard";
 
 // --- ★ データ構造の定義を変更 ★ ---
 // 個々のタップ記録の型
-interface TapEntry {
+export interface TapEntry {
   timestamp: string;
   isOshi: boolean;
 }
