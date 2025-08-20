@@ -163,15 +163,15 @@ export default function Home() {
   }
   
   return (
-    <div className="timer-dashboard-bg min-h-screen">
+    <div className="bg-background min-h-screen">
       {!user ? (
           <div className="flex flex-col items-center justify-center h-screen p-8">
-            <div className="card text-center !bg-gray-800 border border-gray-700">
-                <h2 className="text-xl font-bold mb-4 text-white">ようこそ！</h2>
-                <p className="mb-6 text-gray-400">タイマー機能を利用するには、Googleアカウントでログインしてください。</p>
+            <div className="card text-center !bg-card border border-muted">
+                <h2 className="text-xl font-bold mb-4">ようこそ！</h2>
+                <p className="mb-6 text-muted-foreground">タイマー機能を利用するには、Googleアカウントでログインしてください。</p>
                 <button
                     onClick={() => login()}
-                    className="btn btn-primary inline-flex items-center justify-center whitespace-nowrap"
+                    className="btn btn-primary"
                 >
                     <span>Googleでログイン</span>
                 </button>

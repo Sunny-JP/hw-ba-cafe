@@ -4,7 +4,6 @@ export const runtime = "edge";
 
 import { useState, useEffect, useMemo } from 'react';
 import { addHours, differenceInMilliseconds } from 'date-fns';
-import TimerCard from './TimerCard';
 import CountdownDisplay from './CountdownDisplay';
 
 // propsの型定義
@@ -63,22 +62,24 @@ export default function TimerDashboard({
 
 
     return (
-        <div className="p-4 sm:p-8 space-y-6">
-            <TimerCard title="Next Students Change">
-                <CountdownDisplay milliseconds={studentsChangeRemaining} />
+        <div className="p-4 sm:p-8 space-y-6 max-w-md mx-auto timer-dashboard-bg">
+            <div className="timer-card">
+                <h2 className="timer-card-title">Next Students Change</h2>
+                <div className="countdown-text"><CountdownDisplay milliseconds={studentsChangeRemaining} /></div>
                 <div className="timer-sub-info">
-                    <span>🔄</span>
+                    <span>▶</span>
                     <span>{now.getHours() < 4 || now.getHours() >= 16 ? "04:00" : "16:00"}</span>
                 </div>
-            </TimerCard>
+            </div>
 
-            <TimerCard title="Next Cafe Tap">
-                <CountdownDisplay milliseconds={cafeTapRemaining} />
+            <div className="timer-card">
+                <h2 className="timer-card-title">Next Cafe Tap</h2>
+                <div className="countdown-text"><CountdownDisplay milliseconds={cafeTapRemaining} /></div>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                     <button 
                         onClick={() => onTap(false)} 
                         disabled={cafeTapRemaining > 0 || isSyncing}
-                        className="btn-timer btn-timer-action"
+                        className="btn-timer btn-timer-tap"
                     >{ isSyncing ? '保存中…' : 'Tap' }</button>
                     <button 
                         onClick={() => onTap(true)} 
@@ -86,26 +87,27 @@ export default function TimerDashboard({
                         className="btn-timer btn-timer-fave"
                     >{ isSyncing ? '保存中…' : 'Fave Tap' }</button>
                 </div>
-            </TimerCard>
+            </div>
 
-            <TimerCard title="Next Invitation">
+            <div className="timer-card">
+                <h2 className="timer-card-title">Next Invitation</h2>
                 <div className="grid grid-cols-2 gap-4">
-                    <CountdownDisplay milliseconds={ticket1Remaining} />
-                    <CountdownDisplay milliseconds={ticket2Remaining} />
+                    <div className="countdown-text"><CountdownDisplay milliseconds={ticket1Remaining} /></div>
+                    <div className="countdown-text"><CountdownDisplay milliseconds={ticket2Remaining} /></div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                     <button 
                         onClick={() => onInvite(1)}
                         disabled={ticket1Remaining > 0 || isSyncing}
-                        className="btn-timer btn-timer-action"
+                        className="btn-timer btn-timer-inv"
                     >{ isSyncing ? '保存中…' : 'Ticket 1' }</button>
                     <button 
                         onClick={() => onInvite(2)}
                         disabled={ticket2Remaining > 0 || isSyncing}
-                        className="btn-timer btn-timer-action"
+                        className="btn-timer btn-timer-inv"
                     >{ isSyncing ? '保存中…' : 'Ticket 2' }</button>
                 </div>
-            </TimerCard>
+            </div>
         </div>
     );
 }

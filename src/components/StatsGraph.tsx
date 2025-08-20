@@ -149,21 +149,21 @@ export default function StatsGraph({ tapHistory }: StatsGraphProps) {
         <div>
             <h3 className="text-lg font-bold mb-2 text-foreground">サマリー</h3>
             <div className="grid grid-cols-2 gap-4 text-center">
-                <div className="p-4 bg-secondary rounded-lg">
-                    <div className="text-sm text-muted-foreground">今日</div>
-                    <div className="text-xl font-bold text-foreground">{allTapsToday} <span className="text-pink-600">({oshiTapsToday})</span></div>
+                <div className="p-4 rounded-lg" style={{ background: "var(--secondary)" }}>
+                    <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>今日</div>
+                    <div className="text-xl font-bold" style={{ color: "var(--foreground)" }}>{allTapsToday} <span style={{ color: "#db2777" }}>({oshiTapsToday})</span></div>
                 </div>
-                <div className="p-4 bg-secondary rounded-lg">
-                    <div className="text-sm text-muted-foreground">今週</div>
-                    <div className="text-xl font-bold text-foreground">{allTapsThisWeek} <span className="text-pink-600">({oshiTapsThisWeek})</span></div>
+                <div className="p-4 rounded-lg" style={{ background: "var(--secondary)" }}>
+                    <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>今週</div>
+                    <div className="text-xl font-bold" style={{ color: "var(--foreground)" }}>{allTapsThisWeek} <span style={{ color: "#db2777" }}>({oshiTapsThisWeek})</span></div>
                 </div>
-                <div className="p-4 bg-secondary rounded-lg">
-                    <div className="text-sm text-muted-foreground">今月</div>
-                    <div className="text-xl font-bold text-foreground">{allTapsThisMonth} <span className="text-pink-600">({oshiTapsThisMonth})</span></div>
+                <div className="p-4 rounded-lg" style={{ background: "var(--secondary)" }}>
+                    <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>今月</div>
+                    <div className="text-xl font-bold" style={{ color: "var(--foreground)" }}>{allTapsThisMonth} <span style={{ color: "#db2777" }}>({oshiTapsThisMonth})</span></div>
                 </div>
-                <div className="p-4 bg-secondary rounded-lg">
-                    <div className="text-sm text-muted-foreground">今年</div>
-                    <div className="text-xl font-bold text-foreground">{allTapsThisYear} <span className="text-pink-600">({oshiTapsThisYear})</span></div>
+                <div className="p-4 rounded-lg" style={{ background: "var(--secondary)" }}>
+                    <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>今年</div>
+                    <div className="text-xl font-bold" style={{ color: "var(--foreground)" }}>{allTapsThisYear} <span style={{ color: "#db2777" }}>({oshiTapsThisYear})</span></div>
                 </div>
             </div>
         </div>

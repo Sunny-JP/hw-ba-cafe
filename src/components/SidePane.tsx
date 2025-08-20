@@ -31,9 +31,11 @@ export default function SidePane({ isOpen, onClose, user, logout }: SidePaneProp
     return (
         <main>
             <div className={`fixed inset-0 bg-black/50 z-30 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose}></div>
-            <aside className={`fixed top-0 right-0 h-full w-72 bg-gray-800 text-white shadow-lg transform transition-transform z-40 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+            <aside
+                className={`fixed top-0 right-0 h-full w-72 shadow-lg transform transition-transform z-40 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                style={{ background: "var(--card)", color: "var(--card-foreground)" }}
+            >
                 <nav className="p-4 flex flex-col h-full">
-                    
                     <ul className="space-y-1">
                         {menuItems.map(item => (
                             <li key={item}>
@@ -44,14 +46,12 @@ export default function SidePane({ isOpen, onClose, user, logout }: SidePaneProp
                             </li>
                         ))}
                     </ul>
-                    
                     <div className="mt-8">
-                        <p className="text-sm text-gray-400 mb-2 px-2">Language</p>
+                        <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Language</p>
                         <div className="flex space-x-3 px-2">
                             <span>🇯🇵</span><span>🇺🇸</span><span>🇨🇳</span><span>🇰🇷</span>
                         </div>
                     </div>
-                    
                     <div className="mt-auto">
                         {user && (
                             <>

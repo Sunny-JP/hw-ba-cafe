@@ -3,6 +3,8 @@
 export const runtime = "edge";
 
 import { useMemo } from 'react';
+import { Lekton } from "next/font/google";
+const LektonFont = Lekton({ weight: "700", subsets: ["latin"] });
 
 interface CountdownDisplayProps {
     milliseconds: number;
@@ -18,7 +20,7 @@ export default function CountdownDisplay({ milliseconds }: CountdownDisplayProps
     }, [milliseconds]);
 
     return (
-        <div className="countdown-text">
+        <div className={`countdown-text ${LektonFont.className}`}>
             <span>{hours}</span>:
             <span>{minutes}</span>:
             <span>{seconds}</span>
