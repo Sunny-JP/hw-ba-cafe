@@ -34,7 +34,7 @@ export default function TimerDashboard({
     const studentsChangeRemaining = useMemo(() => {
         // 04:00または16:00までの残り時間を計算
         const hour = now.getHours();
-        let nextChange = new Date(now);
+        const nextChange = new Date(now);
         if (hour < 4) {
             nextChange.setHours(4, 0, 0, 0);
         } else if (hour < 16) {

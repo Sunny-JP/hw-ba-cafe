@@ -24,7 +24,6 @@ export default function Home() {
   const [tapHistory, setTapHistory] = useState<TapEntry[]>([]);
   const [ticket1Time, setTicket1Time] = useState<Date | null>(null);
   const [ticket2Time, setTicket2Time] = useState<Date | null>(null);
-  const [isOshiTap, setIsOshiTap] = useState<boolean>(false);
 
   const [driveFileId, setDriveFileId] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
