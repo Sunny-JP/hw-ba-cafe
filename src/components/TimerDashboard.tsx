@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = "edge";
+
 import { useState, useEffect, useMemo } from 'react';
 import { addHours, differenceInMilliseconds } from 'date-fns';
 import TimerCard from './TimerCard';

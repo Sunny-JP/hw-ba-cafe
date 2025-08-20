@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = "edge";
+
 import { ReactNode } from "react";
 
 interface TimerCardProps {

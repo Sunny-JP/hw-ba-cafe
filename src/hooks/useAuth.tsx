@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = "edge";
+
 import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
 import { useGoogleLogin, googleLogout, TokenResponse } from '@react-oauth/google';
 

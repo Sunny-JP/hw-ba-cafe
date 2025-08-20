@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = "edge";
+
 interface UserProfile { name: string; picture: string; }
 interface SidePaneProps { isOpen: boolean; onClose: () => void; user: UserProfile | null; logout: () => void; }
 

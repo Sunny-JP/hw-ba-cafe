@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = "edge";
+
 import { useState } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
