@@ -154,3 +154,38 @@ body {
 .btn-sidepane {
   @apply w-full flex items-center p-2 rounded-md text-slate-300 hover:bg-gray-700 hover:text-white transition-colors duration-200;
 }
+
+/* ================================== */
+/* New Timer UI Styles                */
+/* ================================== */
+.timer-dashboard-bg {
+  @apply bg-gray-900 text-gray-200;
+}
+
+.timer-card {
+  @apply bg-gray-800/50 border border-gray-700 rounded-2xl p-6 backdrop-blur-sm;
+}
+
+.timer-card-title {
+  @apply text-sm font-semibold text-gray-400 mb-2;
+}
+
+.countdown-text {
+  @apply text-4xl font-mono font-bold tracking-wider;
+}
+
+.timer-sub-info {
+  @apply text-xs text-gray-500 mt-2 flex items-center gap-2;
+}
+
+.btn-timer {
+  @apply w-full py-3 rounded-lg font-bold transition-colors duration-200 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed;
+}
+
+.btn-timer-action {
+  @apply bg-blue-600 text-white hover:bg-blue-700;
+}
+
+.btn-timer-fave {
+  @apply bg-pink-600 text-white hover:bg-pink-700;
+}
