@@ -21,12 +21,12 @@
 .dark {
   --background: #000000;
   --foreground: #ffffff;
-  --card: #222222;
+  --card: #151515;
   --card-foreground: #ffffff;
-  --primary: #4336db;
-  --primary-foreground: #dddddd;
-  --secondary: #a80e84;
-  --secondary-foreground: #dddddd;
+  --primary: #dddddd;
+  --primary-foreground: #333333;
+  --secondary: #dddddd;
+  --secondary-foreground: #333333;
   --invite: #dddddd;
   --invite-foreground: #333333;
   --muted: #444444;
@@ -187,8 +187,22 @@ body {
   margin-bottom: 0.5rem;
 }
 
-.countdown-text {
-  font-size: 2.25rem;
+.countdown-text-l {
+  font-size: 3rem;
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 0.05em;
+}
+
+.countdown-text-s {
+  font-size: 2rem;
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 0.05em;
+}
+
+.-History-text {
+  font-size: 1rem;
   font-weight: 700;
   font-style: normal;
   letter-spacing: 0.05em;

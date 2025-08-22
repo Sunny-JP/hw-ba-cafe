@@ -189,10 +189,10 @@ export default function Home() {
           />
           
           {/* ★ 履歴表示エリア（確認用）★ */}
-          <div className="p-4 sm:p-8 max-w-md mx-auto">
-              <div className="card text-center !bg-gray-800 border border-gray-700">
-                  <h2 className="text-xl font-bold mb-4 text-white">Tap History</h2>
-                  <ul className="text-left text-gray-300">
+          <div className="p-4 sm:p-8 space-y-6 max-w-md mx-auto timer-dashboard-bg">
+              <div className="timer-card">
+                  <h2 className="timer-card-title">Tap History</h2>
+                  <ul className="history-text">
                       {tapHistory.slice(-5).reverse().map(tap => (
                           <li key={tap.timestamp} className="mb-1">
                               {new Date(tap.timestamp).toLocaleString('ja-JP')}

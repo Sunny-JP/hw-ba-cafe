@@ -65,7 +65,7 @@ export default function TimerDashboard({
         <div className="p-4 sm:p-8 space-y-6 max-w-md mx-auto timer-dashboard-bg">
             <div className="timer-card">
                 <h2 className="timer-card-title">Next Students Change</h2>
-                <div className="countdown-text"><CountdownDisplay milliseconds={studentsChangeRemaining} /></div>
+                <div className="countdown-text-l"><CountdownDisplay milliseconds={studentsChangeRemaining} /></div>
                 <div className="timer-sub-info">
                     <span>▶</span>
                     <span>{now.getHours() < 4 || now.getHours() >= 16 ? "04:00" : "16:00"}</span>
@@ -74,7 +74,7 @@ export default function TimerDashboard({
 
             <div className="timer-card">
                 <h2 className="timer-card-title">Next Cafe Tap</h2>
-                <div className="countdown-text"><CountdownDisplay milliseconds={cafeTapRemaining} /></div>
+                <div className="countdown-text-l"><CountdownDisplay milliseconds={cafeTapRemaining} /></div>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                     <button 
                         onClick={() => onTap(false)} 
@@ -92,8 +92,8 @@ export default function TimerDashboard({
             <div className="timer-card">
                 <h2 className="timer-card-title">Next Invitation</h2>
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="countdown-text"><CountdownDisplay milliseconds={ticket1Remaining} /></div>
-                    <div className="countdown-text"><CountdownDisplay milliseconds={ticket2Remaining} /></div>
+                    <div className="countdown-text-s"><CountdownDisplay milliseconds={ticket1Remaining} /></div>
+                    <div className="countdown-text-s"><CountdownDisplay milliseconds={ticket2Remaining} /></div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                     <button 
