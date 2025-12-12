@@ -5,6 +5,9 @@ export const runtime = "edge";
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import TimerDashboard from "@/components/TimerDashboard";
+import HistoryCalendar from '@/components/HistoryCalendar';
+import Settings from '@/components/Settings';
+import BottomNavBar from '@/components/BottomNavBar';
 
 // --- ★ データ構造の定義を変更 ★ ---
 // 個々のタップ記録の型
@@ -20,6 +23,8 @@ interface AppData {
   ticket2Time: string | null;
 }
 
+type Tab = 'timer' | 'history' | 'settings';
+
 export default function Home() {
   const { user, accessToken, isLoading, login } = useAuth();
   
@@ -30,6 +35,8 @@ export default function Home() {
   const [driveFileId, setDriveFileId] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const DRIVE_FILENAME = 'ba-cafe-timer-data.json';
+
+  const [activeTab, setActiveTab] = useState<Tab>('timer');
 
 
   // --- ★ Google Driveへのデータ保存関数 (完全版) ★ ---
@@ -162,8 +169,52 @@ export default function Home() {
     return <div className="text-center p-10">読み込み中...</div>;
   }
   
+  const renderContent = () => {
+    // Large screen layout
+    return (
+      <div className="hidden md:grid md:grid-cols-3 md:gap-4 p-4">
+        <div className="md:col-span-2">
+          <TimerDashboard 
+            lastTapTime={lastTapTime}
+            ticket1Time={ticket1Time}
+            ticket2Time={ticket2Time}
+            onTap={handleTap}
+            onInvite={handleInvite}
+            isSyncing={isSyncing}
+          />
+        </div>
+        <div className="space-y-4">
+          <HistoryCalendar tapHistory={tapHistory} />
+          <Settings />
+        </div>
+      </div>
+    );
+  };
+
+  const renderMobileContent = () => {
+    switch (activeTab) {
+      case 'timer':
+        return (
+          <TimerDashboard 
+            lastTapTime={lastTapTime}
+            ticket1Time={ticket1Time}
+            ticket2Time={ticket2Time}
+            onTap={handleTap}
+            onInvite={handleInvite}
+            isSyncing={isSyncing}
+          />
+        );
+      case 'history':
+        return <HistoryCalendar tapHistory={tapHistory} />;
+      case 'settings':
+        return <Settings />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-background min-h-screen pb-16 md:pb-0">
       {!user ? (
           <div className="flex flex-col items-center justify-center h-screen p-8">
             <div className="card text-center !bg-card border border-muted">
@@ -179,30 +230,15 @@ export default function Home() {
           </div>
       ) : (
         <>
-          <TimerDashboard 
-            lastTapTime={lastTapTime} // 最新のタップ時間だけを渡す
-            ticket1Time={ticket1Time}
-            ticket2Time={ticket2Time}
-            onTap={handleTap}
-            onInvite={handleInvite}
-            isSyncing={isSyncing}
-          />
-          
-          {/* ★ 履歴表示エリア（確認用）★ */}
-          <div className="p-4 sm:p-8 space-y-6 max-w-md mx-auto timer-dashboard-bg">
-              <div className="timer-card">
-                  <h2 className="timer-card-title">Tap History</h2>
-                  <ul className="history-text">
-                      {tapHistory.slice(-5).reverse().map(tap => (
-                          <li key={tap.timestamp} className="mb-1">
-                              {new Date(tap.timestamp).toLocaleString('ja-JP')}
-                              {tap.isOshi && <span className="ml-2 text-pink-500 font-bold">(推し)</span>}
-                          </li>
-                      ))}
-                      {tapHistory.length === 0 && <li>まだ記録がありません</li>}
-                  </ul>
-              </div>
+          {/* Desktop Layout */}
+          {renderContent()}
+
+          {/* Mobile Layout */}
+          <div className="md:hidden">
+            {renderMobileContent()}
           </div>
+          
+          <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
         </>
       )}
     </div>
