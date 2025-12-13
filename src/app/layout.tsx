@@ -9,7 +9,7 @@ import Header from "@/components/Header";
 import SidePane from "@/components/SidePane";
 import "./globals.css";
 import { Noto_Sans_JP } from "next/font/google";
-const NotoSansJPFont400 = Noto_Sans_JP({ weight: "400", subsets: ["latin"] });
+//const NotoSansJPFont400 = Noto_Sans_JP({ weight: "400", subsets: ["latin"] });
 const NotoSansJPFont700 = Noto_Sans_JP({ weight: "700", subsets: ["latin"] });
 
 function AppLayout({ children }: { children: React.ReactNode }) {
