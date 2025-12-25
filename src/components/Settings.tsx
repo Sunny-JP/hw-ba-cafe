@@ -1,4 +1,3 @@
-// src/components/Settings.tsx
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -24,43 +23,43 @@ const Settings = () => {
         }
     };
 
-  return (
+    return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Settings</h1>
-      <div className="space-y-4">
-        <ul className="space-y-1">
-            {menuItems.map(item => (
-                <li key={item}>
-                    <a href="#" className="btn-sidepane">
-                        <MenuItemIcon />
-                        <span>{item}</span>
-                    </a>
-                </li>
-            ))}
-        </ul>
-        <div className="mt-8">
-            <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Language</p>
-            <div className="flex space-x-3 px-2">
-                <span>🇯🇵</span><span>🇺🇸</span><span>🇨🇳</span><span>🇰🇷</span>
+        <h1 className="text-2xl font-bold mb-4">Settings</h1>
+        <div className="space-y-4">
+            <ul className="space-y-1">
+                {menuItems.map(item => (
+                    <li key={item}>
+                        <a href="#" className="btn-sidepane">
+                            <MenuItemIcon />
+                            <span>{item}</span>
+                        </a>
+                    </li>
+                ))}
+            </ul>
+            <div className="mt-8">
+                <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Language</p>
+                <div className="flex space-x-3 px-2">
+                    <span>🇯🇵</span><span>🇺🇸</span><span>🇨🇳</span><span>🇰🇷</span>
+                </div>
+            </div>
+            <div className="mt-auto">
+                {user && (
+                    <>
+                        <div className="flex items-center gap-4 mb-2 p-2">
+                            <img src={user.picture} alt="user avatar" className="w-10 h-10 rounded-full" />
+                            <span className="font-semibold">{user.name}</span>
+                        </div>
+                        <button onClick={handleLogoutClick} className="btn-sidepane">
+                            <LogoutIcon />
+                            <span>ログアウト</span>
+                        </button>
+                    </>
+                )}
             </div>
         </div>
-        <div className="mt-auto">
-            {user && (
-                <>
-                    <div className="flex items-center gap-4 mb-2 p-2">
-                        <img src={user.picture} alt="user avatar" className="w-10 h-10 rounded-full" />
-                        <span className="font-semibold">{user.name}</span>
-                    </div>
-                    <button onClick={handleLogoutClick} className="btn-sidepane">
-                        <LogoutIcon />
-                        <span>ログアウト</span>
-                    </button>
-                </>
-            )}
-        </div>
-      </div>
     </div>
-  );
+    );
 };
 
 export default Settings;

@@ -1,4 +1,3 @@
-// src/components/BottomNavBar.tsx
 import React from 'react';
 
 type Tab = 'timer' | 'history' | 'settings';

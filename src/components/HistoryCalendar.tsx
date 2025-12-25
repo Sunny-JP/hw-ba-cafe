@@ -1,4 +1,3 @@
-// src/components/HistoryCalendar.tsx
 import React, { useState } from 'react';
 import { TapEntry } from '@/app/page';
 
