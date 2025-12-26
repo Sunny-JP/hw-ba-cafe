@@ -6,17 +6,22 @@ import { useState, useEffect, useMemo } from 'react';
 import { addHours, differenceInMilliseconds } from 'date-fns';
 import CountdownDisplay from './CountdownDisplay';
 
-// propsの型定義
+
+interface TapEntry {
+    timestamp: string;
+}
 interface TimerDashboardProps {
+    tapHistory: TapEntry[];
     lastTapTime: Date | null;
     ticket1Time: Date | null;
     ticket2Time: Date | null;
-    onTap: () => void; // 引数なしの Tap に変更
+    onTap: () => void;
     onInvite: (ticketNumber: 1 | 2) => void;
     isSyncing: boolean;
 }
 
 export default function TimerDashboard({
+    tapHistory,
     lastTapTime,
     ticket1Time,
     ticket2Time,
@@ -31,9 +36,7 @@ export default function TimerDashboard({
         return () => clearInterval(timer);
     }, []);
 
-    // --- 計算ロジックはpropsで受け取った値を使う ---
     const studentsChangeRemaining = useMemo(() => {
-        // 04:00または16:00までの残り時間を計算
         const hour = now.getHours();
         const nextChange = new Date(now);
         if (hour < 4) {
@@ -41,7 +44,6 @@ export default function TimerDashboard({
         } else if (hour < 16) {
             nextChange.setHours(16, 0, 0, 0);
         } else {
-            // 翌日の4時
             nextChange.setDate(nextChange.getDate() + 1);
             nextChange.setHours(4, 0, 0, 0);
         }
@@ -61,19 +63,58 @@ export default function TimerDashboard({
     }, [now, ticket2Time]);
 
 
+    const baseStart = useMemo(() => {
+        const d = new Date(now);
+        d.setHours(4, 0, 0, 0);
+        if (now < d) {
+            d.setDate(d.getDate() - 1);
+        }
+        return d;
+    }, [now]);
+
+    const windowStarts = useMemo(() => {
+        return Array.from({ length: 8 }, (_, i) => addHours(new Date(baseStart), i * 3));
+    }, [baseStart]);
+
+    const completedMarkers = useMemo(() => {
+        return windowStarts.map((start) => {
+            return (tapHistory || []).some((entry) => {
+                const t = new Date(entry.timestamp);
+                return t >= start && t < addHours(start, 3);
+            });
+        });
+    }, [windowStarts, tapHistory]);
+
     return (
-        <div className="p-4 sm:p-8 space-y-6 max-w-md mx-auto">
+        <div className="p-4 space-y-6">
             <div className="timer-card">
-                <h2 className="timer-card-title">Next Students Change</h2>
-                <div className="countdown-text-l"><CountdownDisplay milliseconds={studentsChangeRemaining} /></div>
-                <div className="timer-sub-info">
-                    <span>▶</span>
-                    <span>{now.getHours() < 4 || now.getHours() >= 16 ? "04:00" : "16:00"}</span>
+                <div className="flex items-center justify-between">
+                    <h2 className="timer-card-title compact">Next Students Change</h2>
+                    <div className="timer-sub-info compact">
+                        <span>▶</span>
+                        <span>{now.getHours() < 4 || now.getHours() >= 16 ? "04:00" : "16:00"}</span>
+                    </div>
                 </div>
+                <div className="countdown-text-l"><CountdownDisplay milliseconds={studentsChangeRemaining} /></div>
             </div>
 
             <div className="timer-card">
-                <h2 className="timer-card-title">Next Cafe Tap</h2>
+                <div className="flex items-center justify-between">
+                    <h2 className="timer-card-title">Next Cafe Tap</h2>
+                    <div className="tap-markers" role="list" aria-label="時間帯マーカー">
+                        {windowStarts.map((start, i) => {
+                            const completed = completedMarkers[i];
+                            return (
+                                <div
+                                    key={i}
+                                    aria-label={`window-${i}`}
+                                    title={`${start.getHours()}:00 - ${addHours(start,3).getHours()-1}:59`}
+                                    className={`tap-marker ${completed ? 'completed' : ''}`}
+                                />
+                            );
+                        })}
+                    </div>
+                </div>
                 <div className="countdown-text-l"><CountdownDisplay milliseconds={cafeTapRemaining} /></div>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                     <button 
@@ -82,7 +123,7 @@ export default function TimerDashboard({
                         className="btn-timer btn-timer-tap"
                     >{ isSyncing ? '保存中…' : 'Tap' }</button>
                     <div className="flex flex-col items-center justify-center text-center">
-                        <span className="text-xs text-muted-foreground">前回のTap</span>
+                        <span className="history-title text-muted-foreground">Last Tap</span>
                         <span className="history-text">
                             {lastTapTime 
                                 ? lastTapTime.toLocaleString("ja-JP", { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) 

@@ -8,12 +8,21 @@ interface HistoryCalendarProps {
 const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  const tapsByDate = tapHistory.reduce((acc, tap) => {
-    const date = new Date(tap.timestamp).toDateString();
-    if (!acc[date]) {
-      acc[date] = [];
+  const getLogicalDate = (timestamp: string): Date => {
+    const date = new Date(timestamp);
+    if (date.getHours() < 4) {
+      date.setDate(date.getDate() - 1);
     }
-    acc[date].push(tap);
+    return date;
+  };
+
+  const tapsByDate = tapHistory.reduce((acc, tap) => {
+    const logicalDate = getLogicalDate(tap.timestamp);
+    const dateString = logicalDate.toDateString();
+    if (!acc[dateString]) {
+      acc[dateString] = [];
+    }
+    acc[dateString].push(tap);
     return acc;
   }, {} as Record<string, TapEntry[]>);
 
@@ -48,9 +57,9 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
     const taps = tapsByDate[date] || [];
     const bgClass = getTapBgClass(taps.length);
     calendarDays.push(
-      <div key={day} className={`relative p-2 aspect-square rounded-lg ${bgClass}`}>
+      <div key={day} className={`relative p-2 aspect-square rounded-lg ${bgClass} cal-cell`}>
         <div className="absolute top-1 left-2 cal-days">{day}</div>
-        <div className="absolute bottom-1.5 right-3 cal-tap">
+        <div className="absolute bottom-1 right-2 cal-tap">
           {taps.length > 0 ? taps.length : ''}
         </div>
       </div>

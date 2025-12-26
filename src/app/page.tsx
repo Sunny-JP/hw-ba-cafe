@@ -10,7 +10,7 @@ import BottomNavBar from "@/components/BottomNavBar";
 import HistoryCalendar from "@/components/HistoryCalendar";
 import Settings from "@/components/Settings";
 
-// 型定義
+
 export interface TapEntry {
   timestamp: string;
 }
@@ -26,14 +26,13 @@ type Tab = 'timer' | 'history' | 'settings';
 export default function Home() {
   const { isLoggedIn, isLoading, loginWithGoogle } = useAuth();
   
-  // 状態管理
+
   const [activeTab, setActiveTab] = useState<Tab>('timer');
   const [tapHistory, setTapHistory] = useState<TapEntry[]>([]);
   const [ticket1Time, setTicket1Time] = useState<Date | null>(null);
   const [ticket2Time, setTicket2Time] = useState<Date | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // --- Firebase Logic (Save/Load) ---
   
   const saveDataToFirebase = useCallback(async (data: AppData) => {
     const uid = auth.currentUser?.uid;
@@ -69,9 +68,7 @@ export default function Home() {
     }
   }, [saveDataToFirebase]);
 
-  // --- Event Handlers ---
 
-  // Fave 廃止: 単純に Tap を記録する
   const handleTap = async () => {
     const newEntry: TapEntry = { timestamp: new Date().toISOString() };
     const newHistory = [...tapHistory, newEntry];
@@ -110,7 +107,6 @@ export default function Home() {
     }
   };
 
-  // --- Effects ---
 
   useEffect(() => {
     if (isLoggedIn && !isLoading) {
@@ -120,12 +116,10 @@ export default function Home() {
     }
   }, [isLoggedIn, isLoading, loadDataFromFirebase]);
 
-  // --- Render Helpers ---
 
   const lastTap = tapHistory.length > 0 ? tapHistory[tapHistory.length - 1] : null;
   const lastTapTime = lastTap ? new Date(lastTap.timestamp) : null;
 
-  // --- Main Render ---
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen">読み込み中...</div>;
@@ -151,6 +145,7 @@ export default function Home() {
           <div className="mobile-view">
             {activeTab === 'timer' && (
                 <TimerDashboard
+                  tapHistory={tapHistory}
                   lastTapTime={lastTapTime}
                   ticket1Time={ticket1Time}
                   ticket2Time={ticket2Time}
@@ -169,9 +164,9 @@ export default function Home() {
 
           {/* Desktop View (Side-by-side) */}
           <div className="desktop-view">
-            {/* Column 1: Timer */}
             <div className="space-y-6">
               <TimerDashboard
+                tapHistory={tapHistory}
                 lastTapTime={lastTapTime}
                 ticket1Time={ticket1Time}
                 ticket2Time={ticket2Time}
@@ -179,15 +174,10 @@ export default function Home() {
                 onInvite={handleInvite}
                 isSyncing={isSyncing}
               />
-              {/* This space is intentionally left blank after removing recent history */}
             </div>
-
-            {/* Column 2: History */}
             <div>
               <HistoryCalendar tapHistory={tapHistory} />
             </div>
-
-            {/* Column 3: Settings */}
             <div>
               <Settings />
             </div>
