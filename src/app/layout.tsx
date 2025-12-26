@@ -14,7 +14,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Header />
-      <div className="pt-12">{children}</div>
+      {children}
     </>
   );
 }
@@ -26,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className={`${NotoSansJPFont700.className, NotoSansJPFont400.className}`}>
+      <body className={`${NotoSansJPFont700.className, NotoSansJPFont400.className} h-full`}>
         <ThemeProvider>
           <AuthProvider>
             <AppLayout>{children}</AppLayout>
