@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { TapEntry } from '@/app/page';
 
 interface HistoryCalendarProps {
-  tapHistory: TapEntry[];
+  tapHistory: { timestamp: string }[];
 }
 
 const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
@@ -26,28 +26,33 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
   const startDay = firstDayOfMonth.getDay();
   const daysInMonth = lastDayOfMonth.getDate();
 
-  const getTapColor = (tapCount: number) => {
-    if (tapCount === 0) return 'bg-base-200';
-    if (tapCount <= 2) return 'bg-primary/20';
-    if (tapCount <= 4) return 'bg-primary/40';
-    if (tapCount <= 6) return 'bg-primary/60';
-    if (tapCount <= 8) return 'bg-primary/80';
-    return 'bg-primary';
+  const getTapBgClass = (tapCount: number) => {
+    if (tapCount === 0) return 'bg-tap-1';
+    if (tapCount === 1) return 'bg-tap-2';
+    if (tapCount === 2) return 'bg-tap-3';
+    if (tapCount === 3) return 'bg-tap-4';
+    if (tapCount === 4) return 'bg-tap-5';
+    if (tapCount === 5) return 'bg-tap-6';
+    if (tapCount === 6) return 'bg-tap-7';
+    if (tapCount === 7) return 'bg-tap-8';
+    return 'bg-tap-9';
   };
 
   const calendarDays = [];
   for (let i = 0; i < startDay; i++) {
-    calendarDays.push(<div key={`empty-${i}`} className="border p-2 text-center h-24"></div>);
+    calendarDays.push(<div key={`empty-${i}`} className="p-2 aspect-square rounded-lg"></div>);
   }
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day).toDateString();
     const taps = tapsByDate[date] || [];
-    const bgColor = getTapColor(taps.length);
+    const bgClass = getTapBgClass(taps.length);
     calendarDays.push(
-      <div key={day} className={`border p-2 text-center h-24 flex flex-col justify-between ${bgColor}`}>
-        <div>{day}</div>
-        <div className="text-xs">{taps.length} taps</div>
+      <div key={day} className={`relative p-2 aspect-square rounded-lg ${bgClass}`}>
+        <div className="absolute top-1 left-2 cal-days">{day}</div>
+        <div className="absolute bottom-1.5 right-3 cal-tap">
+          {taps.length > 0 ? taps.length : ''}
+        </div>
       </div>
     );
   }
@@ -58,15 +63,14 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Past Tap History</h1>
       <div className="flex justify-between items-center mb-4">
-        <button onClick={() => changeMonth(-1)} className="btn">Prev</button>
-        <div className="text-lg font-semibold">{year}年 {month + 1}月</div>
-        <button onClick={() => changeMonth(1)} className="btn">Next</button>
+        <button onClick={() => changeMonth(-1)} className="cal-nav">Prev</button>
+        <div className="cal-info">{year}年 {month + 1}月</div>
+        <button onClick={() => changeMonth(1)} className="cal-nav">Next</button>
       </div>
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-1.5">
         {['日', '月', '火', '水', '木', '金', '土'].map(d => (
-          <div key={d} className="text-center font-bold">{d}</div>
+          <div key={d} className="text-center cal-week">{d}</div>
         ))}
         {calendarDays}
       </div>

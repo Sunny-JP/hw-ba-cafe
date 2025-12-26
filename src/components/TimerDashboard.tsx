@@ -11,7 +11,7 @@ interface TimerDashboardProps {
     lastTapTime: Date | null;
     ticket1Time: Date | null;
     ticket2Time: Date | null;
-    onTap: (isFave: boolean) => void;
+    onTap: () => void; // 引数なしの Tap に変更
     onInvite: (ticketNumber: 1 | 2) => void;
     isSyncing: boolean;
 }
@@ -62,7 +62,7 @@ export default function TimerDashboard({
 
 
     return (
-        <div className="p-4 sm:p-8 space-y-6 max-w-md mx-auto timer-dashboard-bg">
+        <div className="p-4 sm:p-8 space-y-6 max-w-md mx-auto">
             <div className="timer-card">
                 <h2 className="timer-card-title">Next Students Change</h2>
                 <div className="countdown-text-l"><CountdownDisplay milliseconds={studentsChangeRemaining} /></div>
@@ -77,15 +77,18 @@ export default function TimerDashboard({
                 <div className="countdown-text-l"><CountdownDisplay milliseconds={cafeTapRemaining} /></div>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                     <button 
-                        onClick={() => onTap(false)} 
+                        onClick={() => onTap()} 
                         disabled={cafeTapRemaining > 0 || isSyncing}
                         className="btn-timer btn-timer-tap"
                     >{ isSyncing ? '保存中…' : 'Tap' }</button>
-                    <button 
-                        onClick={() => onTap(true)} 
-                        disabled={cafeTapRemaining > 0 || isSyncing}
-                        className="btn-timer btn-timer-fave"
-                    >{ isSyncing ? '保存中…' : 'Fave Tap' }</button>
+                    <div className="flex flex-col items-center justify-center text-center">
+                        <span className="text-xs text-muted-foreground">前回のTap</span>
+                        <span className="history-text">
+                            {lastTapTime 
+                                ? lastTapTime.toLocaleString("ja-JP", { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) 
+                                : 'なし'}
+                        </span>
+                    </div>
                 </div>
             </div>
 

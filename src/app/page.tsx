@@ -1,17 +1,18 @@
 "use client";
 
+export const runtime = "edge";
+
 import { useState, useEffect, useCallback } from "react";
 import { useAuth, db, auth } from "@/hooks/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import TimerDashboard from "@/components/TimerDashboard";
-import { log } from "node:console";
+import BottomNavBar from "@/components/BottomNavBar";
+import HistoryCalendar from "@/components/HistoryCalendar";
+import Settings from "@/components/Settings";
 
-export const runtime = "edge";
-
+// 型定義
 export interface TapEntry {
   timestamp: string;
-  isOshi: boolean;
 }
 
 interface AppData {
@@ -23,56 +24,44 @@ interface AppData {
 type Tab = 'timer' | 'history' | 'settings';
 
 export default function Home() {
-  console.log("Home");
   const { isLoggedIn, isLoading, loginWithGoogle } = useAuth();
-
+  
+  // 状態管理
+  const [activeTab, setActiveTab] = useState<Tab>('timer');
   const [tapHistory, setTapHistory] = useState<TapEntry[]>([]);
   const [ticket1Time, setTicket1Time] = useState<Date | null>(null);
   const [ticket2Time, setTicket2Time] = useState<Date | null>(null);
-
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const saveDataToFirebase = useCallback(
-    async (data: AppData) => {
-      console.log("saveDataToFirebase");
-      const uid = auth.currentUser?.uid;
-      if (!uid || isSyncing) return;
-      setIsSyncing(true);
-
-      try {
-        const userDocRef = doc(db, "users", uid);
-        await setDoc(userDocRef, data, { merge: true });
-      } catch (err) {
-        console.error("Firebaseへの保存に失敗", err);
-      } finally {
-        setIsSyncing(false);
-      }
-    },
-    [isSyncing],
-  );
+  // --- Firebase Logic (Save/Load) ---
+  
+  const saveDataToFirebase = useCallback(async (data: AppData) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid || isSyncing) return;
+    setIsSyncing(true);
+    try {
+      const userDocRef = doc(db, "users", uid);
+      await setDoc(userDocRef, data, { merge: true });
+    } catch (err) {
+      console.error("Firebaseへの保存に失敗", err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [isSyncing]);
 
   const loadDataFromFirebase = useCallback(async () => {
-    console.log("loadDataFromFirebase");
     const uid = auth.currentUser?.uid;
     if (!uid) return;
-
     try {
       const userDocRef = doc(db, "users", uid);
       const docSnap = await getDoc(userDocRef);
-
       if (docSnap.exists()) {
         const data = docSnap.data() as AppData;
-        if (data.tapHistory) {
-          setTapHistory(data.tapHistory);
-        }
+        if (data.tapHistory) setTapHistory(data.tapHistory);
         if (data.ticket1Time) setTicket1Time(new Date(data.ticket1Time));
         if (data.ticket2Time) setTicket2Time(new Date(data.ticket2Time));
       } else {
-        const initialData: AppData = {
-          tapHistory: [],
-          ticket1Time: null,
-          ticket2Time: null,
-        };
+        const initialData: AppData = { tapHistory: [], ticket1Time: null, ticket2Time: null };
         await saveDataToFirebase(initialData);
       }
     } catch (err) {
@@ -80,12 +69,11 @@ export default function Home() {
     }
   }, [saveDataToFirebase]);
 
-  const handleTap = async (isFave: boolean) => {
-    console.log("handleTap");
-    const newEntry: TapEntry = {
-      timestamp: new Date().toISOString(),
-      isOshi: isFave,
-    };
+  // --- Event Handlers ---
+
+  // Fave 廃止: 単純に Tap を記録する
+  const handleTap = async () => {
+    const newEntry: TapEntry = { timestamp: new Date().toISOString() };
     const newHistory = [...tapHistory, newEntry];
     setTapHistory(newHistory);
 
@@ -100,107 +88,108 @@ export default function Home() {
   };
 
   const handleInvite = async (ticketNumber: 1 | 2) => {
-    console.log("handleInvite");
     const newInviteTime = new Date();
     let newData: AppData;
+    
     if (ticketNumber === 1) {
       setTicket1Time(newInviteTime);
-      newData = {
-        tapHistory,
-        ticket1Time: newInviteTime.toISOString(),
-        ticket2Time: ticket2Time?.toISOString() || null,
-      };
+      newData = { tapHistory, ticket1Time: newInviteTime.toISOString(), ticket2Time: ticket2Time?.toISOString() || null };
     } else {
       setTicket2Time(newInviteTime);
-      newData = {
-        tapHistory,
-        ticket1Time: ticket1Time?.toISOString() || null,
-        ticket2Time: newInviteTime.toISOString(),
-      };
+      newData = { tapHistory, ticket1Time: ticket1Time?.toISOString() || null, ticket2Time: newInviteTime.toISOString() };
     }
-    if (isLoggedIn) {
-      await saveDataToFirebase(newData);
-    }
+    
+    if (isLoggedIn) await saveDataToFirebase(newData);
   };
 
-  useEffect(() => {
-    console.log(
-      `useEffect triggered. isLoggedIn: ${isLoggedIn}, isLoading: ${isLoading}`,
-    );
-    if (isLoggedIn && !isLoading) {
-      console.log("useEffect condition met: Loading data from Firebase.");
-      loadDataFromFirebase();
-    } else if (!isLoggedIn && !isLoading) {
-      console.log(
-        "useEffect condition met: Not logged in, resetting tap history.",
-      );
-      setTapHistory([]);
-    }
-  }, [isLoggedIn, isLoading, loadDataFromFirebase]); // Depend on isLoggedIn and isLoading
-
-  const lastTap =
-    tapHistory.length > 0 ? tapHistory[tapHistory.length - 1] : null;
-  const lastTapTime = lastTap ? new Date(lastTap.timestamp) : null;
-
   const handleGoogleLogin = async () => {
-    console.log("handleGoogleLogin");
     try {
       await loginWithGoogle();
-      console.log("Logged in successfully");
     } catch (error) {
       console.error("Googleログインに失敗", error);
     }
   };
 
+  // --- Effects ---
+
+  useEffect(() => {
+    if (isLoggedIn && !isLoading) {
+      loadDataFromFirebase();
+    } else if (!isLoggedIn && !isLoading) {
+      setTapHistory([]);
+    }
+  }, [isLoggedIn, isLoading, loadDataFromFirebase]);
+
+  // --- Render Helpers ---
+
+  const lastTap = tapHistory.length > 0 ? tapHistory[tapHistory.length - 1] : null;
+  const lastTapTime = lastTap ? new Date(lastTap.timestamp) : null;
+
+  // --- Main Render ---
+
   if (isLoading) {
-    console.log("Loading...");
-    return <div className="text-center p-10">読み込み中...</div>;
+    return <div className="flex justify-center items-center h-screen">読み込み中...</div>;
   }
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-background">
       {!isLoggedIn ? (
         <div className="flex flex-col items-center justify-center h-screen p-8">
-          <div className="card text-center !bg-card border border-muted">
+          <div className="timer-card text-center bg-card! border border-muted p-6 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold mb-4">ようこそ！</h2>
             <p className="mb-6 text-muted-foreground">
               タイマー機能を利用するには、Googleアカウントでログインしてください。
             </p>
-            <button onClick={handleGoogleLogin} className="btn btn-primary">
+            <button onClick={handleGoogleLogin} className="btn-timer btn-timer-tap px-4 py-2 rounded bg-blue-500 text-white">
               <span>Googleでログイン</span>
             </button>
           </div>
         </div>
       ) : (
         <>
-          <TimerDashboard
-            lastTapTime={lastTapTime}
-            ticket1Time={ticket1Time}
-            ticket2Time={ticket2Time}
-            onTap={handleTap}
-            onInvite={handleInvite}
-            isSyncing={isSyncing}
-          />
+          {/* Mobile View (Tabs) */}
+          <div className="mobile-view">
+            {activeTab === 'timer' && (
+                <TimerDashboard
+                  lastTapTime={lastTapTime}
+                  ticket1Time={ticket1Time}
+                  ticket2Time={ticket2Time}
+                  onTap={handleTap}
+                  onInvite={handleInvite}
+                  isSyncing={isSyncing}
+                />
+            )}
+            {activeTab === 'history' && (
+                <HistoryCalendar tapHistory={tapHistory} />
+            )}
+            {activeTab === 'settings' && (
+                <Settings />
+            )}
+          </div>
 
-          <div className="p-4 sm:p-8 space-y-6 max-w-md mx-auto timer-dashboard-bg">
-            <div className="timer-card">
-              <h2 className="timer-card-title">Tap History</h2>
-              <ul className="history-text">
-                {tapHistory
-                  .slice(-5)
-                  .reverse()
-                  .map((tap) => (
-                    <li key={tap.timestamp} className="mb-1">
-                      {new Date(tap.timestamp).toLocaleString("ja-JP")}
-                      {tap.isOshi && (
-                        <span className="ml-2 text-pink-500 font-bold">
-                          (推し)
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                {tapHistory.length === 0 && <li>まだ記録がありません</li>}
-              </ul>
+          {/* Desktop View (Side-by-side) */}
+          <div className="desktop-view">
+            {/* Column 1: Timer */}
+            <div className="space-y-6">
+              <TimerDashboard
+                lastTapTime={lastTapTime}
+                ticket1Time={ticket1Time}
+                ticket2Time={ticket2Time}
+                onTap={handleTap}
+                onInvite={handleInvite}
+                isSyncing={isSyncing}
+              />
+              {/* This space is intentionally left blank after removing recent history */}
+            </div>
+
+            {/* Column 2: History */}
+            <div>
+              <HistoryCalendar tapHistory={tapHistory} />
+            </div>
+
+            {/* Column 3: Settings */}
+            <div>
+              <Settings />
             </div>
           </div>
           
