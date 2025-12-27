@@ -1,7 +1,5 @@
 "use client";
 
-export const runtime = "edge";
-
 import { AuthProvider } from "@/hooks/firebase";
 import { ThemeProvider } from "@/hooks/useTheme";
 import Header from "@/components/Header";
