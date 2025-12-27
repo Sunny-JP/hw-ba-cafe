@@ -1,99 +1,174 @@
-import { getApps, initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+"use client";
+
+import { getApps, initializeApp, FirebaseApp } from "firebase/app";
+import { getAuth, Auth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { getFirestore, Firestore, doc, setDoc, updateDoc, deleteField } from "firebase/firestore"; // ★ updateDoc, deleteField を追加
+import { getStorage, FirebaseStorage } from "firebase/storage";
+import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
+import { getFunctions, Functions } from "firebase/functions";
+import { getMessaging, getToken, Messaging } from "firebase/messaging";
+import * as React from "react";
+import { ReactNode, useContext, useEffect, useState } from "react";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDERID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-console.log(firebaseConfig);
+let app: FirebaseApp;
+let auth: Auth;
+let db: Firestore;
+let storage: FirebaseStorage;
+let analytics: Analytics | undefined;
+let functions: Functions;
+let messaging: Messaging;
 
-if (!getApps()?.length) initializeApp(firebaseConfig);
+if (typeof window !== "undefined" && !getApps().length) {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
+  functions = getFunctions(app, "asia-northeast2");
+  messaging = getMessaging(app);
 
-export const db = getFirestore();
-export const storage = getStorage();
-export const auth = getAuth();
-
-import {
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup,
-  User,
-} from "firebase/auth";
-import * as React from "react";
-import { ReactNode, useContext, useEffect, useState } from "react";
-
-type ContextType = {
-  isLoggedIn: boolean;
-  isLoading: boolean;
-  userName: string;
-  loginWithGoogle: () => Promise<void>; // Add login function to context
-};
-
-const AuthContext = React.createContext<ContextType | null>({
-  isLoggedIn: false,
-  isLoading: false,
-  userName: "",
-  loginWithGoogle: async () => {},
-});
-
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  console.log("AuthProvider");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState("");
-
-  const loginWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      console.log("Google Sign-In successful from AuthProvider");
-    } catch (error) {
-      console.error("Google Sign-In failed in AuthProvider:", error);
-      throw error; // Re-throw to allow caller to handle errors
+  isSupported().then((supported) => {
+    if (supported) {
+      analytics = getAnalytics(app);
     }
-  };
-
-  useEffect(() => {
-    console.log("AuthProvider: useEffect running");
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("AuthProvider: onAuthStateChanged triggered");
-      if (user) {
-        console.log("AuthProvider: User is logged in", user.displayName);
-        setIsLoggedIn(true);
-        setUserName(user.displayName || "");
-      } else {
-        console.log("AuthProvider: User is logged out");
-        setIsLoggedIn(false);
-        setUserName("");
-      }
-      setIsLoading(false);
-    });
-    return () => {
-      console.log("AuthProvider: Unsubscribing from onAuthStateChanged");
-      unsubscribe();
-    };
-  }, []);
-
-  return (
-    <AuthContext.Provider
-      value={{ isLoggedIn, isLoading, userName, loginWithGoogle }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === null) {
-    throw new Error("useAuth must be used within an AuthProvider");
+  });
+} else if (getApps().length) {
+  app = getApps()[0];
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
+  if (typeof window !== "undefined") {
+    functions = getFunctions(app, "asia-northeast2");
+    messaging = getMessaging(app);
   }
-  return context;
+}
+
+export { auth, db, storage, analytics, functions, messaging };
+
+// ▼ 通知ON（登録）処理
+export const requestNotificationPermission = async (uid: string) => {
+  if (!messaging) return false;
+
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    alert("このブラウザは通知に対応していません。");
+    return false;
+  }
+
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      // 拒否された場合は呼び出し元で処理するためここでは何もしない
+      return false;
+    }
+
+    // SWの登録と待機
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    // 既存のSWがなければ登録（重複登録を防ぐためチェック）
+    if (registrations.length === 0) {
+       await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    }
+    
+    const activeRegistration = await navigator.serviceWorker.ready;
+
+    const token = await getToken(messaging, {
+      vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY,
+      serviceWorkerRegistration: activeRegistration,
+    });
+
+    if (token) {
+      const userRef = doc(db, "users", uid);
+      await setDoc(userRef, { fcmToken: token }, { merge: true });
+      return true; // 成功
+    }
+    return false;
+  } catch (error) {
+    console.error("通知設定エラー:", error);
+    alert("設定中にエラーが発生しました。");
+    return false;
+  }
 };
+
+// ▼ 通知OFF（解除）処理：Firestoreからトークンを削除
+export const unregisterNotification = async (uid: string) => {
+    try {
+        const userRef = doc(db, "users", uid);
+        // fcmTokenフィールドのみを削除
+        await updateDoc(userRef, {
+            fcmToken: deleteField()
+        });
+        return true;
+    } catch (error) {
+        console.error("通知解除エラー:", error);
+        return false;
+    }
+};
+
+// ... (以下 AuthProvider などは変更なし) ...
+type ContextType = {
+    isLoggedIn: boolean;
+    isLoading: boolean;
+    userName: string;
+    loginWithGoogle: () => Promise<void>;
+  };
+  
+  const AuthContext = React.createContext<ContextType | null>({
+    isLoggedIn: false,
+    isLoading: true,
+    userName: "",
+    loginWithGoogle: async () => {},
+  });
+  
+  export const AuthProvider = ({ children }: { children: ReactNode }) => {
+    const [isLoading, setIsLoading] = useState(true);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userName, setUserName] = useState("");
+  
+    const loginWithGoogle = async () => {
+      if (!auth) return;
+      const provider = new GoogleAuthProvider();
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        console.error("Google Sign-In failed:", error);
+        throw error;
+      }
+    };
+  
+    useEffect(() => {
+      if (!auth) return;
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          setIsLoggedIn(true);
+          setUserName(user.displayName || "");
+        } else {
+          setIsLoggedIn(false);
+          setUserName("");
+        }
+        setIsLoading(false);
+      });
+      return () => unsubscribe();
+    }, []);
+  
+    return (
+      <AuthContext.Provider value={{ isLoggedIn, isLoading, userName, loginWithGoogle }}>
+        {children}
+      </AuthContext.Provider>
+    );
+  };
+  
+  export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (context === null) {
+      throw new Error("useAuth must be used within an AuthProvider");
+    }
+    return context;
+  };

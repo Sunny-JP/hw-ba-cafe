@@ -3,22 +3,23 @@
 export const runtime = "edge";
 
 import { useState, useEffect, useCallback } from "react";
-import { useAuth, db, auth } from "@/hooks/firebase";
+import { useAuth, db, auth, functions } from "@/hooks/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { httpsCallable } from "firebase/functions";
 import TimerDashboard from "@/components/TimerDashboard";
 import BottomNavBar from "@/components/BottomNavBar";
 import HistoryCalendar from "@/components/HistoryCalendar";
 import Settings from "@/components/Settings";
 
-
-export interface TapEntry {
+// This is the old data structure, used for migration.
+interface OldTapEntry {
   timestamp: string;
 }
 
 interface AppData {
-  tapHistory: TapEntry[];
-  ticket1Time: string | null;
-  ticket2Time: string | null;
+  tapHistory: number[];
+  ticket1Time: number | null;
+  ticket2Time: number | null;
 }
 
 type Tab = 'timer' | 'history' | 'settings';
@@ -28,7 +29,7 @@ export default function Home() {
   
 
   const [activeTab, setActiveTab] = useState<Tab>('timer');
-  const [tapHistory, setTapHistory] = useState<TapEntry[]>([]);
+  const [tapHistory, setTapHistory] = useState<number[]>([]);
   const [ticket1Time, setTicket1Time] = useState<Date | null>(null);
   const [ticket2Time, setTicket2Time] = useState<Date | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -55,10 +56,32 @@ export default function Home() {
       const userDocRef = doc(db, "users", uid);
       const docSnap = await getDoc(userDocRef);
       if (docSnap.exists()) {
-        const data = docSnap.data() as AppData;
-        if (data.tapHistory) setTapHistory(data.tapHistory);
+        const data = docSnap.data();
+        let needsSave = false;
+        
+        // --- Migration logic ---
+        if (data.tapHistory && data.tapHistory.length > 0 && typeof data.tapHistory[0] === 'object' && data.tapHistory[0] !== null) {
+          data.tapHistory = (data.tapHistory as OldTapEntry[]).map(entry => new Date(entry.timestamp).getTime());
+          needsSave = true;
+        }
+        if (data.ticket1Time && typeof data.ticket1Time === 'string') {
+          data.ticket1Time = new Date(data.ticket1Time).getTime();
+          needsSave = true;
+        }
+        if (data.ticket2Time && typeof data.ticket2Time === 'string') {
+          data.ticket2Time = new Date(data.ticket2Time).getTime();
+          needsSave = true;
+        }
+
+        if (needsSave) {
+          await saveDataToFirebase(data as AppData);
+        }
+        // --- End Migration ---
+
+        if (data.tapHistory) setTapHistory(data.tapHistory as number[]);
         if (data.ticket1Time) setTicket1Time(new Date(data.ticket1Time));
         if (data.ticket2Time) setTicket2Time(new Date(data.ticket2Time));
+
       } else {
         const initialData: AppData = { tapHistory: [], ticket1Time: null, ticket2Time: null };
         await saveDataToFirebase(initialData);
@@ -69,18 +92,38 @@ export default function Home() {
   }, [saveDataToFirebase]);
 
 
-  const handleTap = async () => {
-    const newEntry: TapEntry = { timestamp: new Date().toISOString() };
+const handleTap = async () => {
+    // 1. ローカルの表示を即座に更新 (既存の処理)
+    const newEntry = Date.now();
     const newHistory = [...tapHistory, newEntry];
     setTapHistory(newHistory);
 
     if (isLoggedIn) {
+      // 2. Firestoreにデータを保存 (既存の処理)
       const newData: AppData = {
         tapHistory: newHistory,
-        ticket1Time: ticket1Time?.toISOString() || null,
-        ticket2Time: ticket2Time?.toISOString() || null,
+        ticket1Time: ticket1Time?.getTime() || null,
+        ticket2Time: ticket2Time?.getTime() || null,
       };
+      
+      // 並行して処理を進めるために Promise.all を使うのも手ですが、
+      // 保存の確実性を優先して順番に実行します
       await saveDataToFirebase(newData);
+
+      // 3. ★追加: 3時間後の通知を予約する
+      try {
+        // Functionsの 'scheduleNotification' を呼び出す準備
+        const scheduleFn = httpsCallable(functions, 'scheduleNotification');
+        
+        // 実行 (引数は不要。認証情報から自動でUser IDが送られます)
+        await scheduleFn();
+        console.log("3時間後の通知を予約しました");
+        
+      } catch (error) {
+        // 通知予約に失敗しても、Tap動作自体（履歴保存）は成功しているので
+        // エラーログだけ出して処理は止めないのが親切です
+        console.error("通知予約に失敗しました:", error);
+      }
     }
   };
 
@@ -90,10 +133,10 @@ export default function Home() {
     
     if (ticketNumber === 1) {
       setTicket1Time(newInviteTime);
-      newData = { tapHistory, ticket1Time: newInviteTime.toISOString(), ticket2Time: ticket2Time?.toISOString() || null };
+      newData = { tapHistory, ticket1Time: newInviteTime.getTime(), ticket2Time: ticket2Time?.getTime() || null };
     } else {
       setTicket2Time(newInviteTime);
-      newData = { tapHistory, ticket1Time: ticket1Time?.toISOString() || null, ticket2Time: newInviteTime.toISOString() };
+      newData = { tapHistory, ticket1Time: ticket1Time?.getTime() || null, ticket2Time: newInviteTime.getTime() };
     }
     
     if (isLoggedIn) await saveDataToFirebase(newData);
@@ -118,7 +161,7 @@ export default function Home() {
 
 
   const lastTap = tapHistory.length > 0 ? tapHistory[tapHistory.length - 1] : null;
-  const lastTapTime = lastTap ? new Date(lastTap.timestamp) : null;
+  const lastTapTime = lastTap ? new Date(lastTap) : null;
 
 
   if (isLoading) {

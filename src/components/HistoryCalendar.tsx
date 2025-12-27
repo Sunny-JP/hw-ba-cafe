@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { TapEntry } from '@/app/page';
 
 interface HistoryCalendarProps {
-  tapHistory: { timestamp: string }[];
+  tapHistory: number[];
 }
 
 const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  const getLogicalDate = (timestamp: string): Date => {
+  const getLogicalDate = (timestamp: number): Date => {
     const date = new Date(timestamp);
     if (date.getHours() < 4) {
       date.setDate(date.getDate() - 1);
@@ -16,15 +15,15 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
     return date;
   };
 
-  const tapsByDate = tapHistory.reduce((acc, tap) => {
-    const logicalDate = getLogicalDate(tap.timestamp);
+  const tapsByDate = (tapHistory || []).reduce((acc, tap) => {
+    const logicalDate = getLogicalDate(tap);
     const dateString = logicalDate.toDateString();
     if (!acc[dateString]) {
       acc[dateString] = [];
     }
     acc[dateString].push(tap);
     return acc;
-  }, {} as Record<string, TapEntry[]>);
+  }, {} as Record<string, number[]>);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();

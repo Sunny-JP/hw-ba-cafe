@@ -6,12 +6,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { addHours, differenceInMilliseconds } from 'date-fns';
 import CountdownDisplay from './CountdownDisplay';
 
-
-interface TapEntry {
-    timestamp: string;
-}
 interface TimerDashboardProps {
-    tapHistory: TapEntry[];
+    tapHistory: number[];
     lastTapTime: Date | null;
     ticket1Time: Date | null;
     ticket2Time: Date | null;
@@ -79,7 +75,7 @@ export default function TimerDashboard({
     const completedMarkers = useMemo(() => {
         return windowStarts.map((start) => {
             return (tapHistory || []).some((entry) => {
-                const t = new Date(entry.timestamp);
+                const t = new Date(entry);
                 return t >= start && t < addHours(start, 3);
             });
         });
@@ -119,6 +115,7 @@ export default function TimerDashboard({
                 <div className="grid grid-cols-2 gap-4 mt-4">
                     <button 
                         onClick={() => onTap()} 
+                        // disabled={isSyncing} // for debug
                         disabled={cafeTapRemaining > 0 || isSyncing}
                         className="btn-timer btn-timer-tap"
                     >{ isSyncing ? '保存中…' : 'Tap' }</button>
