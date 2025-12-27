@@ -9,10 +9,11 @@
   --primary-foreground: #ffffff;
   --secondary: #000000;
   --secondary-foreground: #666666;
-  --invite: #333333;
-  --invite-foreground: #ffffff;
+  --tap: #000000;
+  --tap-foreground: #ffffff;
   --muted: #eeeeee;
   --muted-foreground: #777777;
+  --nav-foreground: #555555;
   --tap-bg-1: #ededed;
   --tap-bg-2: #ddffcc;
   --tap-bg-3: #caffbb;
@@ -35,10 +36,11 @@
   --primary-foreground: #333333;
   --secondary: #ffffff;
   --secondary-foreground: #aaaaaa;
-  --invite: #dddddd;
-  --invite-foreground: #333333;
+  --tap: #ffffff;
+  --tap-foreground: #333333;
   --muted: #444444;
   --muted-foreground: #aaaaaa;
+  --nav-foreground: #aaaaaa;
   --tap-bg-1: #151515;
   --tap-bg-2: #152811;
   --tap-bg-3: #153711;
@@ -87,18 +89,16 @@ body {
   padding-top: 14px;
   padding-bottom: 14px;
   text-align: center;
-  font-size: 1.2rem; /* text-sm */
+  font-size: 1.2rem;
   line-height: 1.25;
   font-weight: 700;
-  color: var(--muted-foreground);
+  color: var(--nav-foreground);
   background-color: transparent;
   transition: all 0.2s ease-in-out;
 }
-
 .btn-nav:hover {
   color: var(--primary);
 }
-
 .btn-nav.active {
   background-color: var(--primary);
   color: var(--primary-foreground);
@@ -178,20 +178,11 @@ body {
 }
 
 .btn-timer-tap {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+  background-color: var(--tap);
+  color: var(--tap-foreground);
   transition: all 0.2s ease-in-out;
 }
 .btn-timer-tap:hover {
-  filter: brightness(0.9);
-}
-
-.btn-timer-inv {
-  background-color: var(--invite);
-  color: var(--invite-foreground);
-  transition: all 0.2s ease-in-out;
-}
-.btn-timer-inv:hover {
   filter: brightness(0.9);
 }
 
