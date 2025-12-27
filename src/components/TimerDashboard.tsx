@@ -89,7 +89,7 @@ export default function TimerDashboard({
         <div className="p-4 space-y-6">
             <div className="timer-card">
                 <div className="flex items-center justify-between">
-                    <h2 className="timer-card-title compact">Next Students Change</h2>
+                    <h2 className="timer-card-title compact">Next Visit</h2>
                     <div className="timer-sub-info compact">
                         <span>▶</span>
                         <span>{now.getHours() < 4 || now.getHours() >= 16 ? "04:00" : "16:00"}</span>
@@ -100,7 +100,7 @@ export default function TimerDashboard({
 
             <div className="timer-card">
                 <div className="flex items-center justify-between">
-                    <h2 className="timer-card-title">Next Cafe Tap</h2>
+                    <h2 className="timer-card-title">Next Café Tap</h2>
                     <div className="tap-markers" role="list" aria-label="時間帯マーカー">
                         {windowStarts.map((start, i) => {
                             const completed = completedMarkers[i];
@@ -134,7 +134,7 @@ export default function TimerDashboard({
             </div>
 
             <div className="timer-card">
-                <h2 className="timer-card-title">Next Invitation</h2>
+                <h2 className="timer-card-title">Next Call</h2>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="countdown-text-s"><CountdownDisplay milliseconds={ticket1Remaining} /></div>
                     <div className="countdown-text-s"><CountdownDisplay milliseconds={ticket2Remaining} /></div>
@@ -143,12 +143,12 @@ export default function TimerDashboard({
                     <button 
                         onClick={() => onInvite(1)}
                         disabled={ticket1Remaining > 0 || isSyncing}
-                        className="btn-timer btn-timer-inv"
+                        className="btn-timer btn-timer-tap"
                     >{ isSyncing ? '保存中…' : 'Ticket 1' }</button>
                     <button 
                         onClick={() => onInvite(2)}
                         disabled={ticket2Remaining > 0 || isSyncing}
-                        className="btn-timer btn-timer-inv"
+                        className="btn-timer btn-timer-tap"
                     >{ isSyncing ? '保存中…' : 'Ticket 2' }</button>
                 </div>
             </div>
