@@ -76,25 +76,46 @@ const Settings = ({}: SettingsProps) => {
             alert("ログインが必要です");
             return;
         }
+
         setIsProcessingNotif(true);
+
         try {
             if (notificationPermission === 'denied') {
-                alert("通知がブロックされています。\n設定から解除してください。");
-                setIsProcessingNotif(false);
-                return;
+                alert("通知がブロックされています。\nブラウザの設定から、このサイトの通知許可をリセットしてください。");
+                // ブロックされている場合は処理を終了
+                return; 
             }
+
             if (isFcmRegistered) {
-                const success = await unregisterNotification(uid);
-                if (success) alert("通知設定をOFFにしました。");
+                // 通知解除処理
+                await unregisterNotification(uid);
+                alert("通知設定をOFFにしました。");
             } else {
-                const success = await requestNotificationPermission(uid);
+                // 通知登録処理（タイムアウト付き）
+                // 15秒待っても応答がなければエラーとして扱う
+                const permissionPromise = requestNotificationPermission(uid);
+                const timeoutPromise = new Promise<boolean>((_, reject) => 
+                    setTimeout(() => reject(new Error("タイムアウト: 応答がありません。ネットワーク環境やブラウザ設定を確認してください。")), 15000)
+                );
+
+                // どちらかが先に終わるのを待つ
+                const success = await Promise.race([permissionPromise, timeoutPromise]);
+                
+                // 成功後の状態更新
                 setNotificationPermission(Notification.permission);
-                if (success) alert("通知設定をONにしました！");
+                
+                if (success) {
+                    alert("通知設定をONにしました！");
+                } else if (Notification.permission === 'denied') {
+                    alert("通知が拒否されました。設定を変更するにはブラウザの設定画面を確認してください。");
+                }
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert("エラーが発生しました。");
+            // 具体的なエラーメッセージを表示（デバッグ用）
+            alert(`エラーが発生しました: ${error.message}`);
         } finally {
+            // 成功・失敗・タイムアウトに関わらず、処理中フラグを下ろす
             setIsProcessingNotif(false);
         }
     };
