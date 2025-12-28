@@ -1,6 +1,6 @@
 import React from 'react';
 
-type Tab = 'timer' | 'history' | 'settings';
+type Tab = 'timer' | 'history';
 
 interface BottomNavBarProps {
   activeTab: Tab;
@@ -11,7 +11,6 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeTab, setActiveTab }) 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'timer', label: 'Timer' },
     { id: 'history', label: 'History' },
-    { id: 'settings', label: 'Settings' },
   ];
 
   return (

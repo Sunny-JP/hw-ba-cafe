@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { auth, db, requestNotificationPermission, unregisterNotification } from "@/hooks/firebase"; 
 import { signOut, onAuthStateChanged, User } from "firebase/auth";
-import { doc, deleteDoc, onSnapshot } from "firebase/firestore"; // onSnapshotを追加
+import { doc, deleteDoc, onSnapshot } from "firebase/firestore";
 
 const LogoutIcon = ({ className = 'h-5 w-5 mr-2' }: { className?: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -26,34 +26,35 @@ const BellIcon = ({ className = 'h-5 w-5 mr-2' }: { className?: string }) => (
     </svg>
 );
 
-const Settings = () => {
+interface SettingsProps {}
+
+const Settings = ({}: SettingsProps) => {
     const [user, setUser] = useState<User | null>(null);
-    const [isFcmRegistered, setIsFcmRegistered] = useState(false); // FCM登録済みかどうか
+    const [isFcmRegistered, setIsFcmRegistered] = useState(false);
     const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
 
-    // ユーザー監視 & Firestore監視
     useEffect(() => {
+        let unsubDb: () => void;
         const unsubAuth = onAuthStateChanged(auth, (u) => {
             setUser(u);
             if (u) {
-                // ログインしている場合、FirestoreのfcmTokenフィールドを監視
-                const unsubDb = onSnapshot(doc(db, "users", u.uid), (doc) => {
+                unsubDb = onSnapshot(doc(db, "users", u.uid), (doc) => {
                     const data = doc.data();
-                    // fcmTokenが存在すれば登録済みとみなす
                     setIsFcmRegistered(!!data?.fcmToken);
                 });
-                return () => unsubDb();
             } else {
                 setIsFcmRegistered(false);
             }
         });
 
-        // ブラウザの通知権限を確認
         if ('Notification' in window) {
             setNotificationPermission(Notification.permission);
         }
 
-        return () => unsubAuth();
+        return () => {
+            unsubAuth();
+            if (unsubDb) unsubDb();
+        };
     }, []);
 
     const isLoggedIn = !!user;
@@ -63,119 +64,70 @@ const Settings = () => {
     const menuItems = ['About', '利用規約', 'プライバシーポリシー', '運営者情報'];
 
     const [isDeleting, setIsDeleting] = useState(false);
-    const [isProcessingNotif, setIsProcessingNotif] = useState(false); // 通知ボタン処理中フラグ
+    const [isProcessingNotif, setIsProcessingNotif] = useState(false);
 
-    // 通知ボタンのクリックハンドラ
     const handleNotificationClick = async () => {
         if (!('Notification' in window)) {
             alert('このブラウザは通知をサポートしていません。');
             return;
         }
-        
         const uid = auth.currentUser?.uid;
         if (!uid) {
             alert("ログインが必要です");
             return;
         }
-
         setIsProcessingNotif(true);
-
         try {
-            // パターン1: 既にブロックされている場合
             if (notificationPermission === 'denied') {
-                alert("通知がブロックされています。\nブラウザのアドレスバー付近の設定から、通知のブロックを解除してください。");
+                alert("通知がブロックされています。\n設定から解除してください。");
                 setIsProcessingNotif(false);
                 return;
             }
-
-            // パターン2: 既にFCM登録済みの場合 -> 解除処理 (OFFにする)
             if (isFcmRegistered) {
                 const success = await unregisterNotification(uid);
-                if (success) {
-                    alert("通知設定をOFFにしました。\n※ブラウザ自体の通知許可は残ります。完全に無効化したい場合はブラウザ設定で変更してください。");
-                }
-            } 
-            // パターン3: 未登録の場合 -> 登録処理 (ONにする)
-            else {
+                if (success) alert("通知設定をOFFにしました。");
+            } else {
                 const success = await requestNotificationPermission(uid);
-                // 権限状態を更新
                 setNotificationPermission(Notification.permission);
-                
-                if (success) {
-                    alert("通知設定をONにしました！");
-                } else if (Notification.permission === 'denied') {
-                    // ユーザーがポップアップで拒否した場合
-                    alert("通知が拒否されました。設定を変更するにはブラウザの設定画面を確認してください。");
-                }
+                if (success) alert("通知設定をONにしました！");
             }
         } catch (error) {
             console.error(error);
-            alert("処理中にエラーが発生しました。");
+            alert("エラーが発生しました。");
         } finally {
             setIsProcessingNotif(false);
         }
     };
 
-    // ボタンのラベル決定ロジック
     const getNotificationButtonText = () => {
-        if (notificationPermission === 'denied') {
-            return '通知: ブロック中 (解除方法)';
-        }
-        if (isFcmRegistered) {
-            return '通知OFF'; // 押すとOFFにする
-        }
-        return '通知ON'; // 押すとONにする
+        if (notificationPermission === 'denied') return '通知: ブロック中';
+        if (isFcmRegistered) return '通知OFF';
+        return '通知ON';
     };
     
-    // ボタンの色スタイル
     const getNotificationButtonClass = () => {
-        const base = "cal-nav flex items-center justify-center p-2 rounded w-full ";
-        if (notificationPermission === 'denied') {
-            return base + "bg-red-100 text-red-600"; // 警告色
-        }
-        if (isFcmRegistered) {
-             return base + "bg-gray-100"; // OFFにするボタンなので落ち着いた色など
-        }
-        return base + "bg-blue-50 text-blue-600"; // ONにするボタンなので目立たせるなど（お好みで）
+        return "cal-nav flex items-center justify-center p-2 rounded w-full ";
     };
-
 
     const handleLogoutClick = async () => {
         if (window.confirm("本当にログアウトしますか？\n（データは削除されません）")) {
-            try {
-                await signOut(auth);
-                window.location.href = '/';
-            } catch (err) {
-                console.error("ログアウトに失敗しました", err);
-                alert("ログアウトに失敗しました");
-            }
+            await signOut(auth);
+            window.location.href = '/';
         }
     };
 
     const handleDeleteData = async () => {
-        if (!window.confirm("本当にすべてのデータを削除しますか？\nこの操作を実行すると自動的にログアウトされます。")) return;
+        if (!window.confirm("本当に全データを削除しますか？")) return;
         const uid = auth.currentUser?.uid;
         if (!uid) return;
-
         setIsDeleting(true);
         try {
             await deleteDoc(doc(db, "users", uid));
-            if ('serviceWorker' in navigator) {
-                const registrations = await navigator.serviceWorker.getRegistrations();
-                for (const registration of registrations) {
-                    await registration.unregister();
-                }
-            }
             await signOut(auth);
-            alert("データを削除し、ログアウトしました。");
+            alert("データを削除しました。\nログアウトします。");
             window.location.href = "/";
         } catch (err: any) {
-            console.error("エラー:", err);
-            if (err.code === 'permission-denied') {
-                alert("データの削除に失敗しました。\nFirestoreのルールを確認してください。");
-            } else {
-                alert("削除に失敗しました: " + err.message);
-            }
+            alert("削除に失敗しました: " + err.message);
         } finally {
             setIsDeleting(false);
         }
@@ -200,7 +152,12 @@ const Settings = () => {
                     <>
                         <div className="flex items-center gap-4 mb-4 p-2">
                             {avatar ? (
-                                <img src={avatar} alt="user avatar" className="w-10 h-10 rounded-full" />
+                                <img 
+                                    src={avatar} 
+                                    alt="user avatar" 
+                                    className="w-10 h-10 rounded-full" 
+                                    referrerPolicy="no-referrer"
+                                />
                             ) : (
                                 <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
                                     <span className="text-xl">?</span>
@@ -214,8 +171,7 @@ const Settings = () => {
                             <button 
                                 onClick={handleNotificationClick}
                                 disabled={isProcessingNotif}
-                                className={getNotificationButtonClass()} // 動的にスタイル変更
-                                aria-label="通知設定"
+                                className={getNotificationButtonClass()}
                             >
                                 <BellIcon />
                                 <span>{isProcessingNotif ? '処理中...' : getNotificationButtonText()}</span>
