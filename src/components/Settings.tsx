@@ -81,41 +81,46 @@ const Settings = ({}: SettingsProps) => {
 
         try {
             if (notificationPermission === 'denied') {
-                alert("通知がブロックされています。\nブラウザの設定から、このサイトの通知許可をリセットしてください。");
-                // ブロックされている場合は処理を終了
-                return; 
+                alert("通知がブロックされています。\nブラウザの設定から通知許可をリセットしてください。");
+                return;
             }
 
             if (isFcmRegistered) {
-                // 通知解除処理
+                // 解除処理はDB操作メインなので軽い
                 await unregisterNotification(uid);
                 alert("通知設定をOFFにしました。");
             } else {
-                // 通知登録処理（タイムアウト付き）
-                // 15秒待っても応答がなければエラーとして扱う
-                const permissionPromise = requestNotificationPermission(uid);
+                // 登録処理：どこで止まるかチェック
+                
+                // Step 1: ブラウザの許可ダイアログ
+                alert("【デバッグ】Step 1: ブラウザに通知許可を求めています...");
+                const perm = await Notification.requestPermission();
+                alert(`【デバッグ】Step 2: 許可の結果 = ${perm}`);
+                
+                if (perm !== 'granted') {
+                    alert("通知が許可されませんでした。");
+                    return;
+                }
+
+                // Step 3: FCMトークン取得 (ここが重い)
+                alert("【デバッグ】Step 3: ServiceWorkerを起動してトークンを取得中...\n(ここで止まる場合は端末設定やネットワークが原因です)");
+                
+                // タイムアウト付きで実行
+                const tokenPromise = requestNotificationPermission(uid);
                 const timeoutPromise = new Promise<boolean>((_, reject) => 
-                    setTimeout(() => reject(new Error("タイムアウト: 応答がありません。ネットワーク環境やブラウザ設定を確認してください。")), 15000)
+                    setTimeout(() => reject(new Error("タイムアウト: 15秒以上応答がありません。")), 15000)
                 );
 
-                // どちらかが先に終わるのを待つ
-                const success = await Promise.race([permissionPromise, timeoutPromise]);
+                const success = await Promise.race([tokenPromise, timeoutPromise]);
                 
-                // 成功後の状態更新
+                alert(`【デバッグ】Step 4: 完了しました！ 結果=${success}`);
+                
                 setNotificationPermission(Notification.permission);
-                
-                if (success) {
-                    alert("通知設定をONにしました！");
-                } else if (Notification.permission === 'denied') {
-                    alert("通知が拒否されました。設定を変更するにはブラウザの設定画面を確認してください。");
-                }
             }
         } catch (error: any) {
             console.error(error);
-            // 具体的なエラーメッセージを表示（デバッグ用）
-            alert(`エラーが発生しました: ${error.message}`);
+            alert(`エラー: ${error.message}`);
         } finally {
-            // 成功・失敗・タイムアウトに関わらず、処理中フラグを下ろす
             setIsProcessingNotif(false);
         }
     };
@@ -131,7 +136,7 @@ const Settings = ({}: SettingsProps) => {
     };
 
     const handleLogoutClick = async () => {
-        if (window.confirm("本当にログアウトしますか？\n（データは削除されません）")) {
+        if (window.confirm("本当にログアウトしますか？")) {
             await signOut(auth);
             window.location.href = '/';
         }
@@ -144,8 +149,14 @@ const Settings = ({}: SettingsProps) => {
         setIsDeleting(true);
         try {
             await deleteDoc(doc(db, "users", uid));
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (const registration of registrations) {
+                    await registration.unregister();
+                }
+            }
             await signOut(auth);
-            alert("データを削除しました。\nログアウトします。");
+            alert("データを削除しました。");
             window.location.href = "/";
         } catch (err: any) {
             alert("削除に失敗しました: " + err.message);
@@ -173,12 +184,8 @@ const Settings = ({}: SettingsProps) => {
                     <>
                         <div className="flex items-center gap-4 mb-4 p-2">
                             {avatar ? (
-                                <img 
-                                    src={avatar} 
-                                    alt="user avatar" 
-                                    className="w-10 h-10 rounded-full" 
-                                    referrerPolicy="no-referrer"
-                                />
+                                /* referrerPolicyを削除してシンプルな形に戻しました */
+                                <img src={avatar} alt="user avatar" className="w-10 h-10 rounded-full" />
                             ) : (
                                 <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
                                     <span className="text-xl">?</span>
