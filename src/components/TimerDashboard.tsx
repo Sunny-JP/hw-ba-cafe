@@ -118,7 +118,7 @@ export default function TimerDashboard({
                     </div>
                 </div>
                 <div className="countdown-text-l"><CountdownDisplay milliseconds={cafeTapRemaining} /></div>
-                <div className="grid grid-cols-2 gap-[2cqw] mt-[2cqw]">
+                <div className="grid grid-cols-2 gap-3 mt-3">
                     <button 
                         onClick={() => onTap()} 
                         disabled={!canTapCafe || isSyncing}
@@ -139,11 +139,11 @@ export default function TimerDashboard({
 
             <div className="timer-card">
                 <h2 className="timer-card-title">Next Call</h2>
-                <div className="grid grid-cols-2 gap-[2cqw]">
+                <div className="grid grid-cols-2 gap-3">
                     <div className="countdown-text-s"><CountdownDisplay milliseconds={ticket1Remaining} /></div>
                     <div className="countdown-text-s"><CountdownDisplay milliseconds={ticket2Remaining} /></div>
                 </div>
-                <div className="grid grid-cols-2 gap-[2cqw] mt-[2cqw]">
+                <div className="grid grid-cols-2 gap-3 mt-3">
                     <button 
                         onClick={() => onInvite(1)}
                         disabled={!isDataLoaded || ticket1Remaining > 0 || isSyncing}

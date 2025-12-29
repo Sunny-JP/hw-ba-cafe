@@ -81,7 +81,7 @@ const Settings = ({}: SettingsProps) => {
 
         try {
             if (notificationPermission === 'denied') {
-                alert("通知がブロックされています。");
+                alert("通知がブロックされています。\nブラウザの設定から通知許可をリセットしてください。");
                 return;
             }
 
@@ -89,60 +89,35 @@ const Settings = ({}: SettingsProps) => {
                 await unregisterNotification(uid);
                 alert("通知設定をOFFにしました。");
             } else {
-                // ▼▼▼ 詳細デバッグフロー ▼▼▼
-                
-                // Step 1: 権限リクエスト
-                alert("Step 1: 権限を確認中...");
                 const perm = await Notification.requestPermission();
                 if (perm !== 'granted') {
                     alert("通知が許可されませんでした。");
                     return;
                 }
 
-                // Step 2: Service Worker の手動登録 (ここでコケるかチェック)
-                alert("Step 2: Service Worker (SW) を登録します...");
-                try {
-                    // キャッシュを無視して最新を取りに行く設定
-                    const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-                        scope: '/',
-                        updateViaCache: 'none' 
-                    });
-                    
-                    if (swRegistration.active) {
-                        alert("Step 2: SW 登録成功 (Active)");
-                    } else if (swRegistration.installing) {
-                        alert("Step 2: SW 登録成功 (Installing...)");
-                    } else if (swRegistration.waiting) {
-                        alert("Step 2: SW 登録成功 (Waiting)");
-                    }
-                } catch (swError: any) {
-                    // ここでエラーが出るならファイルが見つかっていない
-                    alert(`Step 2 失敗: SW登録エラー\n${swError.message}\n(ファイルパスやMIMEタイプを確認してください)`);
-                    return;
-                }
+                await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+                    scope: '/',
+                    updateViaCache: 'none' 
+                });
 
-                // Step 3: トークン取得 (FCM通信)
-                alert("Step 3: FCMトークンを取得します... (通信中)");
-                
-                // タイムアウト付きで実行
                 const tokenPromise = requestNotificationPermission(uid);
                 const timeoutPromise = new Promise<boolean>((_, reject) => 
-                    setTimeout(() => reject(new Error("タイムアウト: 通信に応答がありません。\n(省電力モードやVPN/広告ブロックを確認してください)")), 15000)
+                    setTimeout(() => reject(new Error("タイムアウト: 応答がありません。ネットワーク環境を確認してください。")), 15000)
                 );
 
                 const success = await Promise.race([tokenPromise, timeoutPromise]);
                 
                 if (success) {
-                    alert("Step 4: 成功！通知ONになりました。");
+                    alert("通知設定をONにしました！");
                 } else {
-                    alert("Step 4: 失敗。トークンが取得できませんでした。");
+                    alert("設定に失敗しました。もう一度お試しください。");
                 }
                 
                 setNotificationPermission(Notification.permission);
             }
         } catch (error: any) {
             console.error(error);
-            alert(`エラー発生: ${error.message}`);
+            alert(`エラーが発生しました: ${error.message}`);
         } finally {
             setIsProcessingNotif(false);
         }
@@ -159,7 +134,7 @@ const Settings = ({}: SettingsProps) => {
     };
 
     const handleLogoutClick = async () => {
-        if (window.confirm("本当にログアウトしますか？")) {
+        if (window.confirm("本当にログアウトしますか？\n（ログアウトしてもデータは削除されません）")) {
             await signOut(auth);
             window.location.href = '/';
         }
@@ -179,7 +154,7 @@ const Settings = ({}: SettingsProps) => {
                 }
             }
             await signOut(auth);
-            alert("データを削除しました。");
+            alert("データを削除しました。\nログアウトします。");
             window.location.href = "/";
         } catch (err: any) {
             alert("削除に失敗しました: " + err.message);

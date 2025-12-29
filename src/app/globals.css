@@ -42,10 +42,10 @@
   --muted-foreground: #aaaaaa;
   --nav-foreground: #aaaaaa;
   --tap-bg-1: #151515;
-  --tap-bg-2: #152811;
-  --tap-bg-3: #153711;
-  --tap-bg-4: #154611;
-  --tap-bg-5: #155511;
+  --tap-bg-2: #153011;
+  --tap-bg-3: #153911;
+  --tap-bg-4: #154811;
+  --tap-bg-5: #155711;
   --tap-bg-6: #156611;
   --tap-bg-7: #158811;
   --tap-bg-8: #15aa11;
@@ -108,7 +108,7 @@ body {
   container-type: inline-size;
   display: flex;
   flex-direction: column;
-  gap: 2cqw;
+  gap: 6cqw;
   padding: 6cqw;
 }
 
@@ -139,7 +139,7 @@ body {
 }
 
 .countdown-text-l {
-  font-size: 8cqw;
+  font-size: 10cqw;
   font-weight: 700;
   letter-spacing: 0.05em;
   line-height: 1.1;
@@ -147,7 +147,7 @@ body {
   margin-bottom: 0.5cqw;
 }
 .countdown-text-s {
-  font-size: 5.5cqw;
+  font-size: 7.5cqw;
   font-weight: 700;
   letter-spacing: 0.05em;
   line-height: 1.1;
@@ -179,10 +179,10 @@ body {
 .btn-timer {
   width: 100%;
   font-weight: 700;
-  padding: 1.5cqw 0;
+  padding: 2cqw 0;
   margin: 0;
   border-radius: 1.5cqw;
-  font-size: 3cqw;
+  font-size: 3.5cqw;
   transition: all 0.2s ease-in-out;
   background-color: var(--primary);
   color: var(--primary-foreground);
@@ -227,11 +227,11 @@ body {
   font-weight: 700;
 }
 .cal-days {
-  font-size: 34cqw;
+  font-size: 40cqw;
   font-weight: 700;
 }
 .cal-tap {
-  font-size: 44cqw;
+  font-size: 50cqw;
   font-weight: 700;
 }
 .cal-nav {
@@ -311,6 +311,7 @@ body {
     display: none;
   }
   .dashboard-container {
+    gap: 2cqw;
     padding: 3cqw;
   }
 }

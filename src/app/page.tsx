@@ -86,7 +86,7 @@ export default function Home() {
 
             {/* Desktop View */}
             <div className="hidden min-[1000px]:flex flex-1 items-center justify-center p-6 h-[calc(100vh-64px)] overflow-hidden">
-              <div className="grid grid-cols-2 gap-6 w-full max-w-[120vh] mx-auto items-stretch">
+              <div className="grid grid-cols-2 gap-6 w-full max-w-[160svh] mx-auto items-stretch">
                 <div className="flex flex-col justify-center">
                   <TimerDashboard
                     tapHistory={tapHistory}
