@@ -54,7 +54,6 @@ if (typeof window !== "undefined" && !getApps().length) {
 
 export { auth, db, storage, analytics, functions, messaging };
 
-// ▼ 通知ON（登録）処理
 export const requestNotificationPermission = async (uid: string) => {
   if (!messaging) return false;
 
@@ -66,15 +65,12 @@ export const requestNotificationPermission = async (uid: string) => {
   try {
     const permission = await Notification.requestPermission();
     if (permission !== "granted") {
-      // 拒否された場合は呼び出し元で処理するためここでは何もしない
       return false;
     }
 
-    // SWの登録と待機
     const registrations = await navigator.serviceWorker.getRegistrations();
-    // 既存のSWがなければ登録（重複登録を防ぐためチェック）
     if (registrations.length === 0) {
-       await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      await navigator.serviceWorker.register('/firebase-messaging-sw.js');
     }
     
     const activeRegistration = await navigator.serviceWorker.ready;
@@ -87,7 +83,7 @@ export const requestNotificationPermission = async (uid: string) => {
     if (token) {
       const userRef = doc(db, "users", uid);
       await setDoc(userRef, { fcmToken: token }, { merge: true });
-      return true; // 成功
+      return true;
     }
     return false;
   } catch (error) {
@@ -97,11 +93,9 @@ export const requestNotificationPermission = async (uid: string) => {
   }
 };
 
-// ▼ 通知OFF（解除）処理：Firestoreからトークンを削除
 export const unregisterNotification = async (uid: string) => {
     try {
         const userRef = doc(db, "users", uid);
-        // fcmTokenフィールドのみを削除
         await updateDoc(userRef, {
             fcmToken: deleteField()
         });
@@ -112,7 +106,6 @@ export const unregisterNotification = async (uid: string) => {
     }
 };
 
-// ... (以下 AuthProvider などは変更なし) ...
 type ContextType = {
     isLoggedIn: boolean;
     isLoading: boolean;

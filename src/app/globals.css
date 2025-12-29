@@ -56,14 +56,9 @@ html {
   font-size: clamp(0.875rem, 0.5rem + 1vw, 1.125rem);
 }
 
-/* Viewport-height fix for mobile browsers:
-   - prefer `svh` (small viewport height) to avoid scroll caused by URL bar
-   - fallback to `vh` when `svh` is not supported
-   - add a variable for bottom nav height so content won't be covered by the fixed bar
-*/
 :root {
-  --svh: 100vh; /* fallback */
-  --bottom-nav-height: 56px; /* adjust if your bottom nav is taller/shorter */
+  --svh: 100vh;
+  --bottom-nav-height: 56px;
 }
 @supports (height: 1svh) {
   :root {
@@ -76,7 +71,6 @@ html {
   }
 }
 
-/* Make root elements fill the (small) viewport height */
 html,
 body,
 #__next {
