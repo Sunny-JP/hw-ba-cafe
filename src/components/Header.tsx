@@ -10,7 +10,7 @@ interface HeaderProps {
 export default function Header({ onMenuClick, isLoggedIn = false }: HeaderProps) {
     return (
         <header className="fixed top-0 left-0 right-0 z-20 flex items-center h-16 justify-between px-6 shadow-sm border-b">
-            <h1 className="text-xl font-bold tracking-tight">Café Timer</h1>
+            <h1>Café Timer</h1>
             <div className="flex items-center gap-4">
                 <ThemeToggleButton />
                 {isLoggedIn && (

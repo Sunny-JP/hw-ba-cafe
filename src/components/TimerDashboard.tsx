@@ -94,7 +94,7 @@ export default function TimerDashboard({
             <div className="timer-card">
                 <div className="flex items-center justify-between">
                     <h2 className="timer-card-title compact">Next Visit</h2>
-                    <div className="timer-sub-info compact">
+                    <div className="timer-sub-info">
                         <span>▶</span>
                         <span>{nextVisitLabel}</span>
                     </div>
@@ -104,7 +104,7 @@ export default function TimerDashboard({
 
             <div className="timer-card">
                 <div className="flex items-center justify-between">
-                    <h2 className="timer-card-title">Next Café Tap</h2>
+                    <h2 className="timer-card-title">Next Tap</h2>
                     <div className="tap-markers" role="list">
                         {windowStarts.map((_start, i) => {
                             const completed = completedMarkers[i];

@@ -47,10 +47,10 @@ export default function Home() {
   }
 
   return (
-    <div className="bg-background min-h-screen flex flex-col">
+    <div className="bg-background h-screen flex flex-col">
       <Header isLoggedIn={isLoggedIn} onMenuClick={() => setIsSidePanelOpen(true)} />
 
-      <main className="pt-16 flex-1 flex flex-col">
+      <main className="pt-16 pb-16 min-[1000px]:pb-0 flex-1 flex flex-col">
         {!isLoggedIn ? (
           <div className="flex flex-col items-center justify-center flex-1 p-8">
             <div className="timer-card text-center bg-card border border-muted p-6 rounded-lg shadow-lg">

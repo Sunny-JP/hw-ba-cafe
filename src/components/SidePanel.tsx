@@ -26,7 +26,7 @@ const SidePanel = ({ isOpen, onClose, children }: SidePanelProps) => {
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex flex-col h-full text-foreground">
+        <div className="flex flex-col text-foreground">
           <div className="flex-1 overflow-y-auto p-1">
             {children}
           </div>

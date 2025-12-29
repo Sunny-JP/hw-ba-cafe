@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ja">
+    <html lang="ja" className="h-full">
       <body className={`${NotoSansJPFont700.className, NotoSansJPFont400.className} h-full`}>
         <ThemeProvider>
           <AuthProvider>

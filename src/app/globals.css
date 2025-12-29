@@ -56,8 +56,9 @@ html {
   font-size: clamp(0.875rem, 0.5rem + 1vw, 1.125rem);
 }
 
-.header {
-  font-size: 1.25rem;
+header {
+  background-color: var(--background);
+  font-size: 1.35rem;
   font-weight: 700;
 }
 
@@ -124,22 +125,14 @@ body {
   justify-content: center;
 }
 .timer-card-title {
-  font-size: 3cqw;
+  font-size: 4cqw;
   font-weight: 700;
   color: var(--secondary-foreground);
-  margin-bottom: 0.5cqw;
-}
-
-.timer-sub-info.compact {
-  margin-top: -0.5cqw;
-  font-size: 2cqw;
-  gap: 0.5cqw;
-  display: flex;
-  align-items: center;
+  margin-bottom: 0.8cqw;
 }
 
 .countdown-text-l {
-  font-size: 10cqw;
+  font-size: 14cqw;
   font-weight: 700;
   letter-spacing: 0.05em;
   line-height: 1.1;
@@ -147,30 +140,30 @@ body {
   margin-bottom: 0.5cqw;
 }
 .countdown-text-s {
-  font-size: 7.5cqw;
+  font-size: 8.5cqw;
   font-weight: 700;
   letter-spacing: 0.05em;
   line-height: 1.1;
 }
 
 .history-title {
-  font-size: 2cqw;
+  font-size: 2.5cqw;
   font-weight: 400;
   letter-spacing: 0.05em;
-  margin-bottom: 0.5cqw;
+  color: var(--secondary-foreground);
 }
 .history-text {
-  font-size: 2.5cqw;
+  font-size: 3.5cqw;
   font-weight: 700;
   letter-spacing: 0.05em;
-  margin-bottom: 0.5cqw;
+  margin-top: -0.5cqw;
 }
 
 .timer-sub-info {
-  font-size: 2cqw;
+  font-size: 3.5cqw;
   font-weight: 700;
   color: var(--secondary-foreground);
-  margin-top: 1cqw;
+  margin-top: -0.5cqw;
   display: flex;
   align-items: center;
   gap: 1cqw;
@@ -179,10 +172,10 @@ body {
 .btn-timer {
   width: 100%;
   font-weight: 700;
-  padding: 2cqw 0;
+  padding: 2.5cqw 0;
   margin: 0;
   border-radius: 1.5cqw;
-  font-size: 3.5cqw;
+  font-size: 4cqw;
   transition: all 0.2s ease-in-out;
   background-color: var(--primary);
   color: var(--primary-foreground);
@@ -204,13 +197,13 @@ body {
 
 .tap-markers {
   display: flex;
-  gap: 0.6cqw;
+  gap: 1cqw;
   align-items: center;
   justify-content: center;
 }
 .tap-marker {
-  width: 1.5cqw;
-  height: 1.5cqw;
+  width: 2cqw;
+  height: 2cqw;
   border: 1px solid var(--secondary-foreground);
   background-color: transparent;
 }
@@ -313,5 +306,22 @@ body {
   .dashboard-container {
     gap: 2cqw;
     padding: 3cqw;
+  }
+
+  .timer-card-title {
+    font-size: 3cqw;
+  }
+  .countdown-text-l {
+    font-size: 11cqw;
+  }
+  .countdown-text-s {
+    font-size: 7.5cqw;
+  }
+  .btn-timer {
+    padding: 2cqw 0;
+    font-size: 3.5cqw;
+  }
+  .timer-sub-info {
+    font-size: 3cqw;
   }
 }
