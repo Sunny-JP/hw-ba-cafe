@@ -81,45 +81,68 @@ const Settings = ({}: SettingsProps) => {
 
         try {
             if (notificationPermission === 'denied') {
-                alert("通知がブロックされています。\nブラウザの設定から通知許可をリセットしてください。");
+                alert("通知がブロックされています。");
                 return;
             }
 
             if (isFcmRegistered) {
-                // 解除処理はDB操作メインなので軽い
                 await unregisterNotification(uid);
                 alert("通知設定をOFFにしました。");
             } else {
-                // 登録処理：どこで止まるかチェック
+                // ▼▼▼ 詳細デバッグフロー ▼▼▼
                 
-                // Step 1: ブラウザの許可ダイアログ
-                alert("【デバッグ】Step 1: ブラウザに通知許可を求めています...");
+                // Step 1: 権限リクエスト
+                alert("Step 1: 権限を確認中...");
                 const perm = await Notification.requestPermission();
-                alert(`【デバッグ】Step 2: 許可の結果 = ${perm}`);
-                
                 if (perm !== 'granted') {
                     alert("通知が許可されませんでした。");
                     return;
                 }
 
-                // Step 3: FCMトークン取得 (ここが重い)
-                alert("【デバッグ】Step 3: ServiceWorkerを起動してトークンを取得中...\n(ここで止まる場合は端末設定やネットワークが原因です)");
+                // Step 2: Service Worker の手動登録 (ここでコケるかチェック)
+                alert("Step 2: Service Worker (SW) を登録します...");
+                try {
+                    // キャッシュを無視して最新を取りに行く設定
+                    const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+                        scope: '/',
+                        updateViaCache: 'none' 
+                    });
+                    
+                    if (swRegistration.active) {
+                        alert("Step 2: SW 登録成功 (Active)");
+                    } else if (swRegistration.installing) {
+                        alert("Step 2: SW 登録成功 (Installing...)");
+                    } else if (swRegistration.waiting) {
+                        alert("Step 2: SW 登録成功 (Waiting)");
+                    }
+                } catch (swError: any) {
+                    // ここでエラーが出るならファイルが見つかっていない
+                    alert(`Step 2 失敗: SW登録エラー\n${swError.message}\n(ファイルパスやMIMEタイプを確認してください)`);
+                    return;
+                }
+
+                // Step 3: トークン取得 (FCM通信)
+                alert("Step 3: FCMトークンを取得します... (通信中)");
                 
                 // タイムアウト付きで実行
                 const tokenPromise = requestNotificationPermission(uid);
                 const timeoutPromise = new Promise<boolean>((_, reject) => 
-                    setTimeout(() => reject(new Error("タイムアウト: 15秒以上応答がありません。")), 15000)
+                    setTimeout(() => reject(new Error("タイムアウト: 通信に応答がありません。\n(省電力モードやVPN/広告ブロックを確認してください)")), 15000)
                 );
 
                 const success = await Promise.race([tokenPromise, timeoutPromise]);
                 
-                alert(`【デバッグ】Step 4: 完了しました！ 結果=${success}`);
+                if (success) {
+                    alert("Step 4: 成功！通知ONになりました。");
+                } else {
+                    alert("Step 4: 失敗。トークンが取得できませんでした。");
+                }
                 
                 setNotificationPermission(Notification.permission);
             }
         } catch (error: any) {
             console.error(error);
-            alert(`エラー: ${error.message}`);
+            alert(`エラー発生: ${error.message}`);
         } finally {
             setIsProcessingNotif(false);
         }
@@ -184,7 +207,6 @@ const Settings = ({}: SettingsProps) => {
                     <>
                         <div className="flex items-center gap-4 mb-4 p-2">
                             {avatar ? (
-                                /* referrerPolicyを削除してシンプルな形に戻しました */
                                 <img src={avatar} alt="user avatar" className="w-10 h-10 rounded-full" />
                             ) : (
                                 <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
