@@ -20,8 +20,9 @@ export const scheduleNotification = functions.region(location).https.onCall(asyn
   }
 
   const userId = context.auth.uid;
-  const delayHours = 3; 
-  const seconds = delayHours * 60 * 60; 
+  // const delayHours = 3; 
+  // const seconds = delayHours * 60 * 60; 
+  const seconds = 900; // デバッグ用: 15分後に設定
 
   // Cloud Tasksが実行する関数のURL
   const url = `https://${location}-${project}.cloudfunctions.net/sendFcmNotification`;
