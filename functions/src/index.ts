@@ -22,7 +22,7 @@ export const scheduleNotification = functions.region(location).https.onCall(asyn
   const userId = context.auth.uid;
   // const delayHours = 3; 
   // const seconds = delayHours * 60 * 60; 
-  const seconds = 900; // デバッグ用: 15分後に設定
+  const seconds = 15 * 60; // デバッグ用: 15分後に設定
 
   // Cloud Tasksが実行する関数のURL
   const url = `https://${location}-${project}.cloudfunctions.net/sendFcmNotification`;
@@ -47,7 +47,7 @@ export const scheduleNotification = functions.region(location).https.onCall(asyn
 
   try {
     await tasksClient.createTask({ parent, task });
-    console.log(`Task created for user: ${userId}`);
+    console.log(`[DEBUG] Task created! User: ${userId}, Delay: ${seconds} seconds (${seconds/60} minutes)`);
     return { success: true, message: "3時間後に通知を予約しました" };
   } catch (error) {
     console.error("Task creation failed:", error);
