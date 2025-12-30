@@ -41,4 +41,4 @@ yarn-error.log*
 next-env.d.ts
 
 bun.lock
-public/firebase-messaging-sw.js
+firebase-messaging-sw.js
