@@ -31,10 +31,8 @@ export default function Home() {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
 
-  // Firestoreへの保存処理 (通常のデータ保存用)
   const saveDataToFirebase = useCallback(async (data: AppData) => {
     const uid = auth.currentUser?.uid;
-    // ここにある isSyncing チェックは、通常のデータ保存時（招待など）の競合を防ぐために残します
     if (!uid || isSyncing) return;
     
     setIsSyncing(true);
@@ -48,7 +46,6 @@ export default function Home() {
     }
   }, [isSyncing]);
 
-  // Firestoreからの読み込み処理
   const loadDataFromFirebase = useCallback(async () => {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
@@ -92,21 +89,14 @@ export default function Home() {
     }
   }, [saveDataToFirebase]);
   
-  // Tapボタンのハンドラ (連打防止対応)
   const handleTap = async () => { 
     if (!isLoggedIn) return; 
-    
-    // ★追加: 既に処理中なら何もしない（連打防止）
     if (isSyncing) return;
-    
-    // ★追加: 即座にボタンを無効化する
     setIsSyncing(true);
 
     try {
         const uid = auth.currentUser?.uid;
-        if (!uid) return; // finallyで解除されるのでここでreturnしても大丈夫ですが、念のため
-
-        // 1. まず新品のトークンを取得
+        if (!uid) return;
         let currentToken: string | undefined = undefined;
         try {
             const token = await getFreshFcmToken();
@@ -132,7 +122,6 @@ export default function Home() {
             fcmToken: currentToken 
         }; 
         
-        // 直接保存 (isSyncing=trueの状態で行うので、saveDataToFirebaseは使わず直接書く)
         try {
             const userDocRef = doc(db, "users", uid);
             await setDoc(userDocRef, newData, { merge: true });
@@ -141,7 +130,6 @@ export default function Home() {
             console.error("Direct DB save failed:", error);
         }
 
-        // 通知予約のスケジュール
         if (shouldScheduleNotification(tapTime)) { 
             try { 
                 const scheduleFn = httpsCallable(functions, 'scheduleNotification'); 
@@ -157,7 +145,6 @@ export default function Home() {
     } catch (error) {
         console.error("Tap process failed:", error);
     } finally {
-        // ★重要: 処理が終わったら（成功しても失敗しても）ボタンを有効に戻す
         setIsSyncing(false);
     }
   };

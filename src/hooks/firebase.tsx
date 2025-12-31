@@ -28,7 +28,6 @@ let analytics: Analytics | undefined;
 let functions: Functions;
 let messaging: Messaging | undefined;
 
-// 初期化ロジック
 if (typeof window !== "undefined" && !getApps().length) {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
@@ -54,8 +53,6 @@ if (typeof window !== "undefined" && !getApps().length) {
 }
 
 export { auth, db, storage, analytics, functions, messaging };
-
-// --- 通知関連の関数 ---
 
 export const requestNotificationPermission = async (uid: string) => {
   if (!messaging) return false;
@@ -109,26 +106,18 @@ export const unregisterNotification = async (uid: string) => {
     }
 };
 
-/**
- * ★変更: DB書き込みは行わず、新品の有効なトークンを取得して返す関数
- * キャッシュ(deleteToken)を削除することで、確実にサーバーで有効なトークンを再発行します。
- */
 export const getFreshFcmToken = async () => {
   try {
     if (!messaging || Notification.permission !== 'granted') return null;
 
     const registration = await navigator.serviceWorker.ready;
 
-    // 1. キャッシュされている古いトークンを削除（強制再発行のため）
     try {
         await deleteToken(messaging);
-        // console.log("Token cache cleared.");
     } catch (e) {
-        // キャッシュがない場合のエラーは無視して進む
         console.warn("Cache clear warning:", e);
     }
 
-    // 2. 新品のトークンを取得
     const currentToken = await getToken(messaging, {
       vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY,
       serviceWorkerRegistration: registration,
@@ -140,8 +129,6 @@ export const getFreshFcmToken = async () => {
     return null;
   }
 };
-
-// --- Auth Context ---
 
 type ContextType = {
     isLoggedIn: boolean;

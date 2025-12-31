@@ -1,23 +1,27 @@
 import React, { useState } from 'react';
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
+
+const JST_TZ = 'Asia/Tokyo';
 
 interface HistoryCalendarProps {
   tapHistory: number[];
 }
 
 const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-
-  const getLogicalDate = (timestamp: number): Date => {
+  const [currentDate, setCurrentDate] = useState(() => toZonedTime(new Date(), JST_TZ));
+  const getLogicalDateString = (timestamp: number): string => {
     const date = new Date(timestamp);
-    if (date.getHours() < 4) {
-      date.setDate(date.getDate() - 1);
+    const hourJst = parseInt(formatInTimeZone(date, JST_TZ, 'H'), 10);
+    const zonedDate = toZonedTime(date, JST_TZ);
+
+    if (hourJst < 4) {
+      zonedDate.setDate(zonedDate.getDate() - 1);
     }
-    return date;
+    return formatInTimeZone(zonedDate, JST_TZ, 'yyyy-MM-dd');
   };
 
   const tapsByDate = (tapHistory || []).reduce((acc, tap) => {
-    const logicalDate = getLogicalDate(tap);
-    const dateString = logicalDate.toDateString();
+    const dateString = getLogicalDateString(tap);
     if (!acc[dateString]) {
       acc[dateString] = [];
     }
@@ -52,9 +56,12 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
   }
 
   for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month, day).toDateString();
-    const taps = tapsByDate[date] || [];
+    const cellDate = new Date(year, month, day);
+    const dateStr = formatInTimeZone(cellDate, JST_TZ, 'yyyy-MM-dd');
+    
+    const taps = tapsByDate[dateStr] || [];
     const bgClass = getTapBgClass(taps.length);
+    
     calendarDays.push(
       <div key={day} className={`relative p-2 aspect-square rounded-lg ${bgClass} cal-cell`}>
         <div className="absolute top-1 left-2 cal-days">{day}</div>

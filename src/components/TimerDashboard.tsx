@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { addHours, differenceInMilliseconds } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import CountdownDisplay from './CountdownDisplay';
 import { getNextBoundary, getSessionEndTime } from '@/lib/timeUtils';
+
+const JST_TZ = 'Asia/Tokyo';
 
 interface TimerDashboardProps {
     tapHistory: number[];
@@ -43,9 +46,7 @@ export default function TimerDashboard({
     }, [now, nextBoundary]);
 
     const nextVisitLabel = useMemo(() => {
-        const h = nextBoundary.getHours();
-        const hourStr = h.toString().padStart(2, '0');
-        return `${hourStr}:00 JST`;
+        return `${formatInTimeZone(nextBoundary, JST_TZ, 'HH:00')} JST`;
     }, [nextBoundary]);
 
     const cafeTapRemaining = useMemo(() => {
@@ -72,7 +73,10 @@ export default function TimerDashboard({
 
     const windowStarts = useMemo(() => {
         let cycleStart = new Date(nextBoundary);
-        if (nextBoundary.getHours() === 4) {
+        
+        const boundaryHourJst = parseInt(formatInTimeZone(nextBoundary, JST_TZ, 'H'), 10);
+
+        if (boundaryHourJst === 4) {
             cycleStart = addHours(cycleStart, -24);
         } else {
             cycleStart = addHours(cycleStart, -12);
@@ -130,7 +134,7 @@ export default function TimerDashboard({
                         <span className="history-title text-muted-foreground">Last Tap</span>
                         <span className="history-text">
                             {lastTapTime 
-                                ? lastTapTime.toLocaleString("ja-JP", { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) 
+                                ? formatInTimeZone(lastTapTime, JST_TZ, 'MM/dd HH:mm')
                                 : 'None'}
                         </span>
                     </div>
