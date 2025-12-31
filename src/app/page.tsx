@@ -34,7 +34,7 @@ export default function Home() {
   // Firestoreへの保存処理 (通常のデータ保存用)
   const saveDataToFirebase = useCallback(async (data: AppData) => {
     const uid = auth.currentUser?.uid;
-    // ここにある isSyncing チェックが、トークン保存を邪魔していました
+    // ここにある isSyncing チェックは、通常のデータ保存時（招待など）の競合を防ぐために残します
     if (!uid || isSyncing) return;
     
     setIsSyncing(true);
@@ -92,60 +92,74 @@ export default function Home() {
     }
   }, [saveDataToFirebase]);
   
-  // Tapボタンのハンドラ
+  // Tapボタンのハンドラ (連打防止対応)
   const handleTap = async () => { 
     if (!isLoggedIn) return; 
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
+    
+    // ★追加: 既に処理中なら何もしない（連打防止）
+    if (isSyncing) return;
+    
+    // ★追加: 即座にボタンを無効化する
+    setIsSyncing(true);
 
-    // 1. まず新品のトークンを取得
-    let currentToken: string | undefined = undefined;
     try {
-        const token = await getFreshFcmToken();
-        if (token) {
-            currentToken = token;
-            console.log("Got fresh token:", token);
-        } else {
-            console.warn("Failed to get fresh token");
+        const uid = auth.currentUser?.uid;
+        if (!uid) return; // finallyで解除されるのでここでreturnしても大丈夫ですが、念のため
+
+        // 1. まず新品のトークンを取得
+        let currentToken: string | undefined = undefined;
+        try {
+            const token = await getFreshFcmToken();
+            if (token) {
+                currentToken = token;
+                console.log("Got fresh token:", token);
+            } else {
+                console.warn("Failed to get fresh token");
+            }
+        } catch (e) {
+            console.error("Token error:", e);
         }
-    } catch (e) {
-        console.error("Token error:", e);
-    }
 
-    const tapTime = new Date(); 
-    const newEntry = tapTime.getTime(); 
-    const newHistory = [...tapHistory, newEntry]; 
-    setTapHistory(newHistory); 
-    
-    const newData: AppData = { 
-        tapHistory: newHistory, 
-        ticket1Time: ticket1Time?.getTime() || null, 
-        ticket2Time: ticket2Time?.getTime() || null,
-        fcmToken: currentToken // トークンがあればセット
-    }; 
-    
-    // ★修正ポイント: saveDataToFirebaseを使わず、直接setDocで保存する
-    // これにより isSyncing ロックを無視して確実に書き込みます
-    try {
-        const userDocRef = doc(db, "users", uid);
-        await setDoc(userDocRef, newData, { merge: true });
-        console.log("DB saved successfully (Direct Write)");
+        const tapTime = new Date(); 
+        const newEntry = tapTime.getTime(); 
+        const newHistory = [...tapHistory, newEntry]; 
+        setTapHistory(newHistory); 
+        
+        const newData: AppData = { 
+            tapHistory: newHistory, 
+            ticket1Time: ticket1Time?.getTime() || null, 
+            ticket2Time: ticket2Time?.getTime() || null,
+            fcmToken: currentToken 
+        }; 
+        
+        // 直接保存 (isSyncing=trueの状態で行うので、saveDataToFirebaseは使わず直接書く)
+        try {
+            const userDocRef = doc(db, "users", uid);
+            await setDoc(userDocRef, newData, { merge: true });
+            console.log("DB saved successfully (Direct Write)");
+        } catch (error) {
+            console.error("Direct DB save failed:", error);
+        }
+
+        // 通知予約のスケジュール
+        if (shouldScheduleNotification(tapTime)) { 
+            try { 
+                const scheduleFn = httpsCallable(functions, 'scheduleNotification'); 
+                await scheduleFn(); 
+                console.log("Notification scheduled"); 
+            } catch (error) { 
+                console.error("Notification schedule failed", error); 
+            } 
+        } else { 
+            console.log("Notification skipped (boundary limit)"); 
+        }
+        
     } catch (error) {
-        console.error("Direct DB save failed:", error);
+        console.error("Tap process failed:", error);
+    } finally {
+        // ★重要: 処理が終わったら（成功しても失敗しても）ボタンを有効に戻す
+        setIsSyncing(false);
     }
-
-    // 通知予約のスケジュール
-    if (shouldScheduleNotification(tapTime)) { 
-        try { 
-            const scheduleFn = httpsCallable(functions, 'scheduleNotification'); 
-            await scheduleFn(); 
-            console.log("Notification scheduled"); 
-        } catch (error) { 
-            console.error("Notification schedule failed", error); 
-        } 
-    } else { 
-        console.log("Notification skipped (boundary limit)"); 
-    } 
   };
 
   const handleInvite = async (ticketNumber: 1 | 2) => { 
