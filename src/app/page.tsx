@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useAuth, db, auth, functions, getFreshFcmToken } from "@/hooks/firebase"; // ★ getFreshFcmTokenに変更
+import { useAuth, db, auth, functions, getFreshFcmToken } from "@/hooks/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
 import Header from "@/components/Header";
@@ -13,15 +13,12 @@ import SidePanel from "@/components/SidePanel";
 import { shouldScheduleNotification } from "@/lib/timeUtils";
 
 interface OldTapEntry { timestamp: string; }
-
-// ★ AppDataにトークンを含めるよう型を拡張
 interface AppData {
   tapHistory: number[];
   ticket1Time: number | null;
   ticket2Time: number | null;
   fcmToken?: string; 
 }
-
 type Tab = 'timer' | 'history';
 
 export default function Home() {
@@ -34,15 +31,15 @@ export default function Home() {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
 
-  // Firestoreへの保存処理（トークンが含まれていればそれも一緒にマージ保存される）
+  // Firestoreへの保存処理 (通常のデータ保存用)
   const saveDataToFirebase = useCallback(async (data: AppData) => {
     const uid = auth.currentUser?.uid;
+    // ここにある isSyncing チェックが、トークン保存を邪魔していました
     if (!uid || isSyncing) return;
     
     setIsSyncing(true);
     try {
       const userDocRef = doc(db, "users", uid);
-      // merge: true なので、fcmTokenがあれば更新され、なければ既存のフィールドは維持されます
       await setDoc(userDocRef, data, { merge: true });
     } catch (err) {
       console.error("Firebase save error", err);
@@ -64,7 +61,6 @@ export default function Home() {
         const data = docSnap.data();
         let needsSave = false;
         
-        // 旧データ形式の変換処理
         if (data.tapHistory && data.tapHistory.length > 0 && typeof data.tapHistory[0] === 'object' && data.tapHistory[0] !== null) {
           data.tapHistory = (data.tapHistory as OldTapEntry[]).map(entry => new Date(entry.timestamp).getTime());
           needsSave = true;
@@ -99,14 +95,21 @@ export default function Home() {
   // Tapボタンのハンドラ
   const handleTap = async () => { 
     if (!isLoggedIn) return; 
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
 
-    // ★重要: タップした瞬間に新品のトークンを取得する（ここではまだ書き込まない）
+    // 1. まず新品のトークンを取得
     let currentToken: string | undefined = undefined;
-    if (auth.currentUser?.uid) {
+    try {
         const token = await getFreshFcmToken();
         if (token) {
             currentToken = token;
+            console.log("Got fresh token:", token);
+        } else {
+            console.warn("Failed to get fresh token");
         }
+    } catch (e) {
+        console.error("Token error:", e);
     }
 
     const tapTime = new Date(); 
@@ -114,15 +117,22 @@ export default function Home() {
     const newHistory = [...tapHistory, newEntry]; 
     setTapHistory(newHistory); 
     
-    // ★履歴データと一緒にトークンも保存（書き込み回数: 1回）
     const newData: AppData = { 
         tapHistory: newHistory, 
         ticket1Time: ticket1Time?.getTime() || null, 
         ticket2Time: ticket2Time?.getTime() || null,
-        fcmToken: currentToken // トークンがあれば更新、なければundefined（更新なし）
+        fcmToken: currentToken // トークンがあればセット
     }; 
     
-    await saveDataToFirebase(newData); 
+    // ★修正ポイント: saveDataToFirebaseを使わず、直接setDocで保存する
+    // これにより isSyncing ロックを無視して確実に書き込みます
+    try {
+        const userDocRef = doc(db, "users", uid);
+        await setDoc(userDocRef, newData, { merge: true });
+        console.log("DB saved successfully (Direct Write)");
+    } catch (error) {
+        console.error("Direct DB save failed:", error);
+    }
 
     // 通知予約のスケジュール
     if (shouldScheduleNotification(tapTime)) { 
@@ -138,7 +148,6 @@ export default function Home() {
     } 
   };
 
-  // チケット招待のハンドラ
   const handleInvite = async (ticketNumber: 1 | 2) => { 
     const newInviteTime = new Date(); 
     let newData: AppData; 
