@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { auth, db, requestNotificationPermission, unregisterNotification } from "@/hooks/firebase"; 
-import { signOut, onAuthStateChanged, User } from "firebase/auth";
+import { signOut, deleteUser, onAuthStateChanged, User } from "firebase/auth";
 import { doc, deleteDoc, onSnapshot } from "firebase/firestore";
 
 const LogoutIcon = ({ className = 'h-5 w-5 mr-2' }: { className?: string }) => (
@@ -61,7 +62,12 @@ const Settings = ({}: SettingsProps) => {
     const displayName = (user as any)?.displayName || (user as any)?.email || "No Name";
     const avatar = (user as any)?.photoURL || null;
     
-    const menuItems = ['About', '利用規約', 'プライバシーポリシー', '運営者情報'];
+    const menuItems = [
+        { label: 'About', path: '/about' },
+        { label: '利用規約', path: '/terms' },
+        { label: 'プライバシーポリシー', path: '/privacy' },
+        { label: '運営者情報', path: '/operator' },
+    ];
 
     const [isDeleting, setIsDeleting] = useState(false);
     const [isProcessingNotif, setIsProcessingNotif] = useState(false);
@@ -140,24 +146,30 @@ const Settings = ({}: SettingsProps) => {
         }
     };
 
-    const handleDeleteData = async () => {
-        if (!window.confirm("本当に全データを削除しますか？")) return;
-        const uid = auth.currentUser?.uid;
-        if (!uid) return;
+const handleDeleteData = async () => {
+        if (!window.confirm("本当に全データを削除しますか？\n（この操作は取り消せません）")) return;
+        const user = auth.currentUser;
+        if (!user) return;
+        
         setIsDeleting(true);
         try {
-            await deleteDoc(doc(db, "users", uid));
+            await deleteDoc(doc(db, "users", user.uid));
             if ('serviceWorker' in navigator) {
                 const registrations = await navigator.serviceWorker.getRegistrations();
                 for (const registration of registrations) {
                     await registration.unregister();
                 }
             }
-            await signOut(auth);
-            alert("データを削除しました。\nログアウトします。");
+            await deleteUser(user);
+            alert("アカウントと全データを削除しました。");
             window.location.href = "/";
         } catch (err: any) {
-            alert("削除に失敗しました: " + err.message);
+            console.error(err);
+            if (err.code === 'auth/requires-recent-login') {
+                alert("セキュリティ保護のため、再ログインが必要です。\n一度ログアウトして再ログインしてから、もう一度お試しください。");
+            } else {
+                alert("削除に失敗しました: " + err.message);
+            }
         } finally {
             setIsDeleting(false);
         }
@@ -168,11 +180,11 @@ const Settings = ({}: SettingsProps) => {
         <div className="space-y-4">
             <ul className="space-y-1">
                 {menuItems.map(item => (
-                    <li key={item}>
-                        <a href="#" className="btn-setting flex items-center p-2 rounded">
+                    <li key={item.label}>
+                        <Link href={item.path} className="btn-setting flex items-center p-2 rounded">
                             <MenuItemIcon />
-                            <span>{item}</span>
-                        </a>
+                            <span>{item.label}</span>
+                        </Link>
                     </li>
                 ))}
             </ul>
