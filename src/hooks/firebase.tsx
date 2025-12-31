@@ -2,7 +2,7 @@
 
 import { getApps, initializeApp, FirebaseApp } from "firebase/app";
 import { getAuth, Auth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { getFirestore, Firestore, doc, setDoc, updateDoc, deleteField } from "firebase/firestore"; // ★ updateDoc, deleteField を追加
+import { getFirestore, Firestore, doc, setDoc, updateDoc, deleteField } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
 import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
 import { getFunctions, Functions } from "firebase/functions";
@@ -26,7 +26,7 @@ let db: Firestore;
 let storage: FirebaseStorage;
 let analytics: Analytics | undefined;
 let functions: Functions;
-let messaging: Messaging;
+let messaging: Messaging | undefined;
 
 if (typeof window !== "undefined" && !getApps().length) {
   app = initializeApp(firebaseConfig);
@@ -104,6 +104,53 @@ export const unregisterNotification = async (uid: string) => {
         console.error("通知解除エラー:", error);
         return false;
     }
+};
+
+/**
+ * ★追加機能: 
+ * アプリ利用時(Tap時)にこっそりトークンを最新化する関数。
+ * 課金枠節約のため、トークンとUIDに変更がない場合はDB書き込みをスキップする。
+ */
+export const refreshFcmToken = async (uid: string) => {
+  try {
+    // messagingが初期化されていない、または通知権限がない場合は何もしない
+    if (!messaging || Notification.permission !== 'granted') return null;
+
+    const registration = await navigator.serviceWorker.ready;
+    
+    // 1. 今の最新トークンを取得
+    const currentToken = await getToken(messaging, {
+      vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY,
+      serviceWorkerRegistration: registration,
+    });
+
+    if (currentToken) {
+      // 2. LocalStorageから「前回保存したトークン」と「その時のUID」を取り出す
+      const savedToken = localStorage.getItem('sentFcmToken');
+      const savedUid = localStorage.getItem('sentFcmUid');
+
+      // 3. 比較：トークンも同じ、かつ、ユーザーも同じ場合のみDB書き込みをスキップ
+      if (savedToken === currentToken && savedUid === uid) {
+        console.log("Token & User are up-to-date. Skipping DB write.");
+        return currentToken;
+      }
+
+      // 4. どちらかが違う場合は、現在のユーザーのDBに書き込む
+      const userRef = doc(db, "users", uid);
+      await setDoc(userRef, { fcmToken: currentToken }, { merge: true });
+      
+      // 5. LocalStorageを更新（トークンとユーザーID両方）
+      localStorage.setItem('sentFcmToken', currentToken);
+      localStorage.setItem('sentFcmUid', uid);
+      
+      console.log(`Token refreshed for user ${uid}`);
+      return currentToken;
+    }
+    return null;
+  } catch (error) {
+    console.error("Token refresh failed:", error);
+    return null;
+  }
 };
 
 type ContextType = {
