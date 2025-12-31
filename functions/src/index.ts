@@ -1,7 +1,8 @@
-/** 本番用
+/** 本番用 */
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import { CloudTasksClient } from "@google-cloud/tasks";
+import { messages } from "./messages";
 
 admin.initializeApp();
 
@@ -18,7 +19,7 @@ export const scheduleNotification = functions.region(location).https.onCall(asyn
 
   const userId = context.auth.uid;
   const delayHours = 3; 
-  const seconds = delayHours * 60 * 60; // 10800秒 (3時間)
+  const seconds = delayHours * 60 * 60; 
 
   const url = `https://${location}-${project}.cloudfunctions.net/sendFcmNotification`;
   const payload = { userId };
@@ -29,9 +30,7 @@ export const scheduleNotification = functions.region(location).https.onCall(asyn
       httpMethod: "POST" as const,
       url,
       body: Buffer.from(JSON.stringify(payload)).toString("base64"),
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
     },
     scheduleTime: {
       seconds: Date.now() / 1000 + seconds,
@@ -40,7 +39,7 @@ export const scheduleNotification = functions.region(location).https.onCall(asyn
 
   try {
     await tasksClient.createTask({ parent, task });
-    console.log(`[PROD] Task created! User: ${userId}, Delay: ${seconds} seconds`);
+    console.log(`[PROD] Task created! User: ${userId}, Delay: ${delayHours} hours`);
     return { success: true, message: "3時間後に通知を予約しました" };
   } catch (error) {
     console.error("Task creation failed:", error);
@@ -68,11 +67,13 @@ export const sendFcmNotification = functions.region(location).https.onRequest(as
       return;
     }
 
+    const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+
     const message = {
       token: fcmToken,
       notification: {
-        title: "カフェ業務の時間です",
-        body: "前回のタップから3時間が経過しました。",
+        title: randomMsg.title,
+        body: randomMsg.body,
       },
       webpush: {
         fcmOptions: {
@@ -82,7 +83,7 @@ export const sendFcmNotification = functions.region(location).https.onRequest(as
     };
 
     await admin.messaging().send(message);
-    console.log(`Notification sent to ${userId}`);
+    console.log(`Notification sent to ${userId}: ${randomMsg.title}`);
     res.status(200).send("Sent successfully");
 
   } catch (error: any) {
@@ -108,10 +109,9 @@ export const sendFcmNotification = functions.region(location).https.onRequest(as
     res.status(500).send("Internal Server Error (Retryable)");
   }
 });
-*/
 
 
-/** デバッグ用 */
+/** デバッグ用
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import { CloudTasksClient } from "@google-cloud/tasks";
@@ -227,3 +227,4 @@ export const sendFcmNotification = functions.region(location).https.onRequest(as
     res.status(500).send("Internal Server Error (Retryable)");
   }
 });
+*/
