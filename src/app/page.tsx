@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useAuth, db, auth, functions, refreshFcmToken } from "@/hooks/firebase";
+import { useAuth, db, auth, functions, getFreshFcmToken } from "@/hooks/firebase"; // ★ getFreshFcmTokenに変更
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
 import Header from "@/components/Header";
@@ -13,11 +13,15 @@ import SidePanel from "@/components/SidePanel";
 import { shouldScheduleNotification } from "@/lib/timeUtils";
 
 interface OldTapEntry { timestamp: string; }
+
+// ★ AppDataにトークンを含めるよう型を拡張
 interface AppData {
   tapHistory: number[];
   ticket1Time: number | null;
   ticket2Time: number | null;
+  fcmToken?: string; 
 }
+
 type Tab = 'timer' | 'history';
 
 export default function Home() {
@@ -30,23 +34,142 @@ export default function Home() {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
 
-  const saveDataToFirebase = useCallback(async (data: AppData) => { const uid = auth.currentUser?.uid; if (!uid || isSyncing) return; setIsSyncing(true); try { const userDocRef = doc(db, "users", uid); await setDoc(userDocRef, data, { merge: true }); } catch (err) { console.error("Firebase save error", err); } finally { setIsSyncing(false); } }, [isSyncing]);
-  const loadDataFromFirebase = useCallback(async () => { const uid = auth.currentUser?.uid; if (!uid) return; try { const userDocRef = doc(db, "users", uid); const docSnap = await getDoc(userDocRef); if (docSnap.exists()) { const data = docSnap.data(); let needsSave = false; if (data.tapHistory && data.tapHistory.length > 0 && typeof data.tapHistory[0] === 'object' && data.tapHistory[0] !== null) { data.tapHistory = (data.tapHistory as OldTapEntry[]).map(entry => new Date(entry.timestamp).getTime()); needsSave = true; } if (data.ticket1Time && typeof data.ticket1Time === 'string') { data.ticket1Time = new Date(data.ticket1Time).getTime(); needsSave = true; } if (data.ticket2Time && typeof data.ticket2Time === 'string') { data.ticket2Time = new Date(data.ticket2Time).getTime(); needsSave = true; } if (needsSave) { await saveDataToFirebase(data as AppData); } if (data.tapHistory) setTapHistory(data.tapHistory as number[]); if (data.ticket1Time) setTicket1Time(new Date(data.ticket1Time)); if (data.ticket2Time) setTicket2Time(new Date(data.ticket2Time)); } else { const initialData: AppData = { tapHistory: [], ticket1Time: null, ticket2Time: null }; await saveDataToFirebase(initialData); } } catch (err) { console.error("Firebase load error", err); } finally { setIsDataLoaded(true); } }, [saveDataToFirebase]);
+  // Firestoreへの保存処理（トークンが含まれていればそれも一緒にマージ保存される）
+  const saveDataToFirebase = useCallback(async (data: AppData) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid || isSyncing) return;
+    
+    setIsSyncing(true);
+    try {
+      const userDocRef = doc(db, "users", uid);
+      // merge: true なので、fcmTokenがあれば更新され、なければ既存のフィールドは維持されます
+      await setDoc(userDocRef, data, { merge: true });
+    } catch (err) {
+      console.error("Firebase save error", err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [isSyncing]);
+
+  // Firestoreからの読み込み処理
+  const loadDataFromFirebase = useCallback(async () => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    
+    try {
+      const userDocRef = doc(db, "users", uid);
+      const docSnap = await getDoc(userDocRef);
+      
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        let needsSave = false;
+        
+        // 旧データ形式の変換処理
+        if (data.tapHistory && data.tapHistory.length > 0 && typeof data.tapHistory[0] === 'object' && data.tapHistory[0] !== null) {
+          data.tapHistory = (data.tapHistory as OldTapEntry[]).map(entry => new Date(entry.timestamp).getTime());
+          needsSave = true;
+        }
+        if (data.ticket1Time && typeof data.ticket1Time === 'string') {
+          data.ticket1Time = new Date(data.ticket1Time).getTime();
+          needsSave = true;
+        }
+        if (data.ticket2Time && typeof data.ticket2Time === 'string') {
+          data.ticket2Time = new Date(data.ticket2Time).getTime();
+          needsSave = true;
+        }
+        
+        if (needsSave) {
+          await saveDataToFirebase(data as AppData);
+        }
+        
+        if (data.tapHistory) setTapHistory(data.tapHistory as number[]);
+        if (data.ticket1Time) setTicket1Time(new Date(data.ticket1Time));
+        if (data.ticket2Time) setTicket2Time(new Date(data.ticket2Time));
+      } else {
+        const initialData: AppData = { tapHistory: [], ticket1Time: null, ticket2Time: null };
+        await saveDataToFirebase(initialData);
+      }
+    } catch (err) {
+      console.error("Firebase load error", err);
+    } finally {
+      setIsDataLoaded(true);
+    }
+  }, [saveDataToFirebase]);
   
+  // Tapボタンのハンドラ
   const handleTap = async () => { 
     if (!isLoggedIn) return; 
-    // ★重要: タップした瞬間にトークンを最新化・修復する (課金対策済み)
+
+    // ★重要: タップした瞬間に新品のトークンを取得する（ここではまだ書き込まない）
+    let currentToken: string | undefined = undefined;
     if (auth.currentUser?.uid) {
-        await refreshFcmToken(auth.currentUser.uid);
+        const token = await getFreshFcmToken();
+        if (token) {
+            currentToken = token;
+        }
     }
+
     const tapTime = new Date(); 
     const newEntry = tapTime.getTime(); 
-    const newHistory = [...tapHistory, newEntry]; setTapHistory(newHistory); 
-    const newData: AppData = { tapHistory: newHistory, ticket1Time: ticket1Time?.getTime() || null, ticket2Time: ticket2Time?.getTime() || null, }; await saveDataToFirebase(newData); if (shouldScheduleNotification(tapTime)) { try { const scheduleFn = httpsCallable(functions, 'scheduleNotification'); await scheduleFn(); console.log("Notification scheduled"); } catch (error) { console.error("Notification schedule failed", error); } } else { console.log("Notification skipped (boundary limit)"); } };
-  const handleInvite = async (ticketNumber: 1 | 2) => { const newInviteTime = new Date(); let newData: AppData; if (ticketNumber === 1) { setTicket1Time(newInviteTime); newData = { tapHistory, ticket1Time: newInviteTime.getTime(), ticket2Time: ticket2Time?.getTime() || null }; } else { setTicket2Time(newInviteTime); newData = { tapHistory, ticket1Time: ticket1Time?.getTime() || null, ticket2Time: newInviteTime.getTime() }; } if (isLoggedIn) await saveDataToFirebase(newData); };
-  const handleGoogleLogin = async () => { try { await loginWithGoogle(); } catch (error) { console.error("Google Login failed", error); } };
+    const newHistory = [...tapHistory, newEntry]; 
+    setTapHistory(newHistory); 
+    
+    // ★履歴データと一緒にトークンも保存（書き込み回数: 1回）
+    const newData: AppData = { 
+        tapHistory: newHistory, 
+        ticket1Time: ticket1Time?.getTime() || null, 
+        ticket2Time: ticket2Time?.getTime() || null,
+        fcmToken: currentToken // トークンがあれば更新、なければundefined（更新なし）
+    }; 
+    
+    await saveDataToFirebase(newData); 
 
-  useEffect(() => { if (isLoggedIn && !isLoading) { loadDataFromFirebase(); } else if (!isLoggedIn && !isLoading) { setTapHistory([]); setIsDataLoaded(true); } }, [isLoggedIn, isLoading, loadDataFromFirebase]);
+    // 通知予約のスケジュール
+    if (shouldScheduleNotification(tapTime)) { 
+        try { 
+            const scheduleFn = httpsCallable(functions, 'scheduleNotification'); 
+            await scheduleFn(); 
+            console.log("Notification scheduled"); 
+        } catch (error) { 
+            console.error("Notification schedule failed", error); 
+        } 
+    } else { 
+        console.log("Notification skipped (boundary limit)"); 
+    } 
+  };
+
+  // チケット招待のハンドラ
+  const handleInvite = async (ticketNumber: 1 | 2) => { 
+    const newInviteTime = new Date(); 
+    let newData: AppData; 
+    
+    if (ticketNumber === 1) { 
+        setTicket1Time(newInviteTime); 
+        newData = { tapHistory, ticket1Time: newInviteTime.getTime(), ticket2Time: ticket2Time?.getTime() || null }; 
+    } else { 
+        setTicket2Time(newInviteTime); 
+        newData = { tapHistory, ticket1Time: ticket1Time?.getTime() || null, ticket2Time: newInviteTime.getTime() }; 
+    } 
+    
+    if (isLoggedIn) await saveDataToFirebase(newData); 
+  };
+
+  const handleGoogleLogin = async () => { 
+    try { 
+        await loginWithGoogle(); 
+    } catch (error) { 
+        console.error("Google Login failed", error); 
+    } 
+  };
+
+  useEffect(() => { 
+    if (isLoggedIn && !isLoading) { 
+        loadDataFromFirebase(); 
+    } else if (!isLoggedIn && !isLoading) { 
+        setTapHistory([]); 
+        setIsDataLoaded(true); 
+    } 
+  }, [isLoggedIn, isLoading, loadDataFromFirebase]);
 
   const lastTap = tapHistory.length > 0 ? tapHistory[tapHistory.length - 1] : null;
   const lastTapTime = lastTap ? new Date(lastTap) : null;

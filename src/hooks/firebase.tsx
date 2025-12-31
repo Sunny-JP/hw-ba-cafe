@@ -6,7 +6,7 @@ import { getFirestore, Firestore, doc, setDoc, updateDoc, deleteField } from "fi
 import { getStorage, FirebaseStorage } from "firebase/storage";
 import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
 import { getFunctions, Functions } from "firebase/functions";
-import { getMessaging, getToken, Messaging } from "firebase/messaging";
+import { getMessaging, getToken, deleteToken, Messaging } from "firebase/messaging"; // deleteTokenを追加
 import * as React from "react";
 import { ReactNode, useContext, useEffect, useState } from "react";
 
@@ -28,6 +28,7 @@ let analytics: Analytics | undefined;
 let functions: Functions;
 let messaging: Messaging | undefined;
 
+// 初期化ロジック
 if (typeof window !== "undefined" && !getApps().length) {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
@@ -53,6 +54,8 @@ if (typeof window !== "undefined" && !getApps().length) {
 }
 
 export { auth, db, storage, analytics, functions, messaging };
+
+// --- 通知関連の関数 ---
 
 export const requestNotificationPermission = async (uid: string) => {
   if (!messaging) return false;
@@ -107,51 +110,38 @@ export const unregisterNotification = async (uid: string) => {
 };
 
 /**
- * ★追加機能: 
- * アプリ利用時(Tap時)にこっそりトークンを最新化する関数。
- * 課金枠節約のため、トークンとUIDに変更がない場合はDB書き込みをスキップする。
+ * ★変更: DB書き込みは行わず、新品の有効なトークンを取得して返す関数
+ * キャッシュ(deleteToken)を削除することで、確実にサーバーで有効なトークンを再発行します。
  */
-export const refreshFcmToken = async (uid: string) => {
+export const getFreshFcmToken = async () => {
   try {
-    // messagingが初期化されていない、または通知権限がない場合は何もしない
     if (!messaging || Notification.permission !== 'granted') return null;
 
     const registration = await navigator.serviceWorker.ready;
-    
-    // 1. 今の最新トークンを取得
+
+    // 1. キャッシュされている古いトークンを削除（強制再発行のため）
+    try {
+        await deleteToken(messaging);
+        // console.log("Token cache cleared.");
+    } catch (e) {
+        // キャッシュがない場合のエラーは無視して進む
+        console.warn("Cache clear warning:", e);
+    }
+
+    // 2. 新品のトークンを取得
     const currentToken = await getToken(messaging, {
       vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY,
       serviceWorkerRegistration: registration,
     });
 
-    if (currentToken) {
-      // 2. LocalStorageから「前回保存したトークン」と「その時のUID」を取り出す
-      const savedToken = localStorage.getItem('sentFcmToken');
-      const savedUid = localStorage.getItem('sentFcmUid');
-
-      // 3. 比較：トークンも同じ、かつ、ユーザーも同じ場合のみDB書き込みをスキップ
-      if (savedToken === currentToken && savedUid === uid) {
-        console.log("Token & User are up-to-date. Skipping DB write.");
-        return currentToken;
-      }
-
-      // 4. どちらかが違う場合は、現在のユーザーのDBに書き込む
-      const userRef = doc(db, "users", uid);
-      await setDoc(userRef, { fcmToken: currentToken }, { merge: true });
-      
-      // 5. LocalStorageを更新（トークンとユーザーID両方）
-      localStorage.setItem('sentFcmToken', currentToken);
-      localStorage.setItem('sentFcmUid', uid);
-      
-      console.log(`Token refreshed for user ${uid}`);
-      return currentToken;
-    }
-    return null;
+    return currentToken || null;
   } catch (error) {
-    console.error("Token refresh failed:", error);
+    console.error("Token retrieval failed:", error);
     return null;
   }
 };
+
+// --- Auth Context ---
 
 type ContextType = {
     isLoggedIn: boolean;
