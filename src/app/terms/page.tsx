@@ -18,7 +18,7 @@ export default function TermsPage() {
 
           <h3 className="font-bold text-foreground mt-4">2. 禁止事項</h3>
           <ul className="list-disc pl-5">
-            <li>本サービスのサーバーに過度な負荷をかける行為<br />（Googleアカウントを複数用いてのログインは、良識の範囲内に限り許可します）</li>
+            <li>本サービスのサーバーに過度な負荷をかける行為<br />（Discordアカウントを複数用いてのログインは、良識の範囲内に限り許可します）</li>
             <li>不正アクセス行為</li>
             <li>本ツールを営利目的に使用する行為</li>
             <li>その他、運営者が不適切と判断する行為</li>

@@ -34,6 +34,7 @@ const Settings = ({}: SettingsProps) => {
 
     const menuItems = [
         { label: 'About', path: '/about' },
+        { label: '使い方ガイド', path: '/guide' },
         { label: '利用規約', path: '/terms' },
         { label: 'プライバシーポリシー', path: '/privacy' },
         { label: '運営者情報', path: '/operator' },
