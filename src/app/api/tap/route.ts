@@ -58,8 +58,8 @@ export async function POST(request: Request) {
 
     if (tapTime) {
       const sendAfter = new Date(tapTime);
-      sendAfter.setHours(sendAfter.getHours() + 3); // Production
-      // sendAfter.setSeconds(sendAfter.getSeconds() + 180); // Testing
+      // sendAfter.setHours(sendAfter.getHours() + 3); // Production
+      sendAfter.setSeconds(sendAfter.getSeconds() + 300); // Testing
 
       const randomMsg = messages 
         ? messages[Math.floor(Math.random() * messages.length)]
