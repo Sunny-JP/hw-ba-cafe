@@ -55,8 +55,6 @@ function LoginScreen() {
   );
 }
 
-export const runtime = 'edge';
-
 export default function Home() {
   const { isLoggedIn, isLoading } = useAuth();
   
