@@ -14,8 +14,49 @@ import SidePanel from "@/components/SidePanel";
 
 type Tab = 'timer' | 'history';
 
+function LoginScreen() {
+  const { loginWithDiscord } = useAuth();
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setIsLoginLoading(true);
+    try {
+      await loginWithDiscord();
+    } catch (error) {
+      console.error("Login failed:", error);
+      alert("ログインに失敗しました");
+      setIsLoginLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center flex-1 p-8">
+      <div className="timer-card text-center bg-card border border-muted p-8 rounded-2xl shadow-lg max-w-sm w-full">
+        <h2 className="text-2xl font-bold mb-2">Welcome!</h2>
+        <p className="mb-8 text-muted-foreground text-sm">
+          利用するにはログインしてください
+        </p>
+        
+        <button 
+          onClick={handleLogin} 
+          disabled={isLoginLoading}
+          className={`
+            w-full py-4 rounded-xl text-lg font-bold transition-all shadow-md
+            ${isLoginLoading 
+              ? 'bg-muted text-muted-foreground cursor-wait' 
+              : 'bg-[#5865F2] text-white hover:brightness-110 hover:shadow-lg'
+            }
+          `}
+        >
+          {isLoginLoading ? 'Connecting...' : 'Discord Login'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
-  const { isLoggedIn, isLoading, loginWithDiscord } = useAuth();
+  const { isLoggedIn, isLoading } = useAuth();
   
   const [activeTab, setActiveTab] = useState<Tab>('timer');
   const [tapHistory, setTapHistory] = useState<number[]>([]);
@@ -59,7 +100,6 @@ export default function Home() {
       const { data: { session } } = await supabase.auth.getSession();
       const onesignalId = (OneSignal as any).User?.PushSubscription?.id;
 
-      console.log("OneSignal ID:", onesignalId);
       if (!onesignalId) {
         console.log("Notification ID not ready yet.");
       }
@@ -124,24 +164,17 @@ export default function Home() {
   const lastTapTime = lastTap ? new Date(lastTap) : null;
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return <div className="flex justify-center items-center h-screen text-muted-foreground font-bold">Loading...</div>;
   }
 
   return (
     <div className="bg-background h-screen flex flex-col">
       <OneSignalInit />
       <Header isLoggedIn={isLoggedIn} onMenuClick={() => setIsSidePanelOpen(true)} />
+      
       <main className="pt-16 pb-16 min-[1000px]:pb-0 flex-1 flex flex-col">
         {!isLoggedIn ? (
-          <div className="flex flex-col items-center justify-center flex-1 p-8">
-            <div className="timer-card text-center bg-card border border-muted p-6 rounded-lg shadow-lg">
-              <h2 className="text-xl font-bold mb-4">Welcome!</h2>
-              <p className="mb-6 text-muted-foreground">タイマーを利用するにはログインしてください</p>
-              <button onClick={loginWithDiscord} className="btn-timer btn-timer-tap" style={{ color: '#ffffff', backgroundColor: '#5865F2' }}>
-                Discord Login
-              </button>
-            </div>
-          </div>
+          <LoginScreen />
         ) : (
           <>
             {/* Mobile View */}
