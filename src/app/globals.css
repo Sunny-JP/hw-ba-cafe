@@ -196,7 +196,10 @@ body {
 }
 .slot-current {
   background-color: var(--card);
-  color: var(--foreground);
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 2px;
 }
 .slot-tapped {
   color: var(--primary);
