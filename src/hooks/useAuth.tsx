@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
 import { createClient, User } from '@supabase/supabase-js';
+import OneSignal from 'react-onesignal';
 
 export const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -53,6 +54,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     await supabase.auth.signOut();
+    try {
+      await OneSignal.logout();
+    } catch (e) {
+      console.error("OneSignal logout error", e);
+    }
     setUser(null);
   };
 

@@ -72,7 +72,11 @@ export default function Home() {
     if (!user) return;
     
     try {
-      await OneSignal.login(user.id);
+      if (OneSignal.User) {
+        await OneSignal.login(user.id);
+      } else {
+        console.log("OneSignal not ready yet");
+      }
     } catch (e) {
       console.error("OneSignal login error", e);
     }
