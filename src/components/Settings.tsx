@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth, supabase } from "@/hooks/useAuth"; 
 import OneSignal from 'react-onesignal';
 
+// --- (アイコン定義はそのまま維持) ---
 const LogoutIcon = ({ className = 'h-5 w-5 mr-2' }: { className?: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -39,27 +40,42 @@ const Settings = ({}: SettingsProps) => {
         { label: '運営者情報', path: '/operator' },
     ];
 
+    // ★修正: 通知ボタンの処理（デバッグ対応版）
     const handleNotificationClick = async () => {
         try {
+            // 1. OneSignal自体の読み込み確認
             if (!OneSignal.User) {
-                alert("通知システムを読み込み中です。少々お待ちください。");
+                alert("エラー: 通知システムがまだ読み込まれていません。\nページをリロードするか、Service Workerが配置されているか確認してください。");
                 return;
             }
 
+            // 2. ブラウザの権限状態を確認
+            const permission = Notification.permission;
+            console.log("Current Permission:", permission);
+
+            if (permission === 'denied') {
+                // すでに「ブロック」されている場合、プログラムからダイアログは出せません
+                alert("【通知がブロックされています】\n\nブラウザの設定で通知が「ブロック」になっています。\nURLバーの鍵アイコン 🔒 をタップして、「通知」を許可（またはリセット）してください。");
+                return;
+            }
+
+            // 3. 通知のON/OFF切り替え
             const isOptedIn = OneSignal.User.PushSubscription.optedIn;
 
             if (isOptedIn) {
                 await OneSignal.User.PushSubscription.optOut();
                 alert("通知をOFFにしました。");
             } else {
+                // ★修正: 明示的に権限リクエストを送るメソッドを使用
+                await OneSignal.Notifications.requestPermission();
                 await OneSignal.User.PushSubscription.optIn();
-                await OneSignal.Slidedown.promptPush();
                 
-                alert("通知をONにしました！");
+                alert("通知をONにしました！\n（もしダイアログが出ない場合は、すでに許可済みか、自動ブロックされています）");
             }
-        } catch (e) {
-            console.error(e);
-            alert("設定の変更に失敗しました。\nブラウザの通知許可設定をご確認ください。");
+
+        } catch (e: any) {
+            console.error("Notification Setup Error:", e);
+            alert(`設定エラーが発生しました:\n${e.message || e}`);
         }
     };
 
