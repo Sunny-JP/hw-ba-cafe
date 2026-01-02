@@ -42,3 +42,5 @@ next-env.d.ts
 
 bun.lock
 firebase-messaging-sw.js
+
+.open-next

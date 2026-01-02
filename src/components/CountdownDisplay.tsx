@@ -1,7 +1,5 @@
 "use client";
 
-export const runtime = "edge";
-
 import { useMemo } from 'react';
 import { Lekton } from "next/font/google";
 const LektonFont = Lekton({ weight: "700", subsets: ["latin"] });

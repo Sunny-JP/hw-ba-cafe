@@ -1,7 +1,5 @@
 "use client";
 
-export const runtime = "edge";
-
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 type Theme = 'light' | 'dark';
