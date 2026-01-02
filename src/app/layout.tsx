@@ -21,7 +21,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#fbfbfb' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -30,9 +33,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="ja" className="h-full">
       <body className={`${NotoSansJPFont700.className} ${NotoSansJPFont400.className} h-full`}>
