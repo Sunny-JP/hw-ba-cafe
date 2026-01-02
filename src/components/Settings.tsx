@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useAuth, supabase } from "@/hooks/useAuth"; 
 import OneSignal from 'react-onesignal';
 
-// --- (アイコン定義はそのまま維持) ---
 const LogoutIcon = ({ className = 'h-5 w-5 mr-2' }: { className?: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -40,37 +39,29 @@ const Settings = ({}: SettingsProps) => {
         { label: '運営者情報', path: '/operator' },
     ];
 
-    // ★修正: 通知ボタンの処理（デバッグ対応版）
-    const handleNotificationClick = async () => {
+const handleNotificationClick = async () => {
         try {
-            // 1. OneSignal自体の読み込み確認
             if (!OneSignal.User) {
-                alert("エラー: 通知システムがまだ読み込まれていません。\nページをリロードするか、Service Workerが配置されているか確認してください。");
+                alert("通知システムが読み込まれていません。\n\n「広告ブロッカー」や「コンテンツブロッカー」を使用している場合は、このサイトだけOFFにしてリロードしてください。");
                 return;
             }
 
-            // 2. ブラウザの権限状態を確認
-            const permission = Notification.permission;
-            console.log("Current Permission:", permission);
+            const permission = Notification.permission; 
 
             if (permission === 'denied') {
-                // すでに「ブロック」されている場合、プログラムからダイアログは出せません
-                alert("【通知がブロックされています】\n\nブラウザの設定で通知が「ブロック」になっています。\nURLバーの鍵アイコン 🔒 をタップして、「通知」を許可（またはリセット）してください。");
+                alert("【通知がブロックされています】\n\nブラウザの設定で通知が「ブロック」になっています。\nこのサイトの「通知」を許可（またはリセット）してください。");
                 return;
             }
 
-            // 3. 通知のON/OFF切り替え
             const isOptedIn = OneSignal.User.PushSubscription.optedIn;
 
             if (isOptedIn) {
                 await OneSignal.User.PushSubscription.optOut();
                 alert("通知をOFFにしました。");
             } else {
-                // ★修正: 明示的に権限リクエストを送るメソッドを使用
                 await OneSignal.Notifications.requestPermission();
                 await OneSignal.User.PushSubscription.optIn();
-                
-                alert("通知をONにしました！\n（もしダイアログが出ない場合は、すでに許可済みか、自動ブロックされています）");
+                alert("通知をONにしました！");
             }
 
         } catch (e: any) {
