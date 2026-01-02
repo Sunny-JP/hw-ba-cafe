@@ -70,9 +70,15 @@ export default function Home() {
   const loadData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
+    
+    try {
+      await OneSignal.login(user.id);
+    } catch (e) {
+      console.error("OneSignal login error", e);
+    }
 
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)

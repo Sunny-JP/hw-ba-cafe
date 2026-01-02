@@ -61,10 +61,16 @@ export async function POST(request: Request) {
       // sendAfter.setHours(sendAfter.getHours() + 3); // Production
       sendAfter.setSeconds(sendAfter.getSeconds() + 180); // Testing
 
-      const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+      const randomMsg = messages 
+        ? messages[Math.floor(Math.random() * messages.length)]
+        : { title: "Cafe Timer", body: "カフェ業務の時間です" };
+      
       const notificationPayload = {
         app_id: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID,
-        include_player_ids: [onesignalId],
+        include_aliases: { 
+          external_id: [user.id] 
+        },
+        target_channel: "push",
         contents: { en: randomMsg.body, ja: randomMsg.body },
         headings: { en: randomMsg.title, ja: randomMsg.title },
         send_after: sendAfter.toISOString(), 
