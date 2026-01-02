@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
 
-  turbopack: {}, 
+//  turbopack: {}, 
 
   output: 'standalone'
 };

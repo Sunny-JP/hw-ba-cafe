@@ -1,7 +1,5 @@
 "use client";
 
-export const runtime = "edge";
-
 import { useTheme } from '@/hooks/useTheme';
 
 const SunIcon = () => (
