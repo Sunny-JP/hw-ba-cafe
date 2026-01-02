@@ -11,7 +11,7 @@
   --secondary-foreground: #666666;
   --tap: #000000;
   --tap-foreground: #ffffff;
-  --muted: #eeeeee;
+  --muted: #cccccc;
   --muted-foreground: #777777;
   --nav-foreground: #555555;
   --tap-bg-1: #ededed;
@@ -32,13 +32,13 @@
   --foreground: #ffffff;
   --card: #151515;
   --card-foreground: #ffffff;
-  --primary: #dddddd;
+  --primary: #fbfbfb;
   --primary-foreground: #333333;
   --secondary: #ffffff;
   --secondary-foreground: #aaaaaa;
   --tap: #ffffff;
   --tap-foreground: #333333;
-  --muted: #444444;
+  --muted: #555555;
   --muted-foreground: #aaaaaa;
   --nav-foreground: #aaaaaa;
   --tap-bg-1: #151515;
@@ -171,6 +171,43 @@ body {
   line-height: 1.1;
 }
 
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5cqw;
+  margin-bottom: 4.5cqw;
+  padding: 0 8cqw;
+}
+.slot-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.5cqw;
+  border-style: none;
+  min-height: 8cqw;
+  transition: all 0.2s;
+  line-height: 1.2;
+  font-weight: 700;
+}
+.slot-default {
+  background-color: var(--card);
+  color: var(--muted);
+}
+.slot-current {
+  background-color: var(--card);
+  color: var(--foreground);
+}
+.slot-tapped {
+  color: var(--primary);
+}
+.slot-text-main {
+  font-size: 3.5cqw;
+}
+.slot-text-sub {
+  font-size: 2cqw;
+}
+
 .history-title {
   font-size: 2.5cqw;
   font-weight: 400;
@@ -204,6 +241,7 @@ body {
   transition: all 0.2s ease-in-out;
   background-color: var(--primary);
   color: var(--primary-foreground);
+  height: auto;
 }
 .btn-timer:disabled {
   background-color: var(--muted);
@@ -218,22 +256,6 @@ body {
 }
 .btn-timer-tap:hover {
   filter: brightness(0.9);
-}
-
-.tap-markers {
-  display: flex;
-  gap: 1cqw;
-  align-items: center;
-  justify-content: center;
-}
-.tap-marker {
-  width: 2cqw;
-  height: 2cqw;
-  border: 1px solid var(--secondary-foreground);
-  background-color: transparent;
-}
-.tap-marker.completed {
-  background-color: var(--secondary-foreground);
 }
 
 .cal-info {

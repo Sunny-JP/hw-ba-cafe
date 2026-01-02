@@ -30,24 +30,25 @@ export default function TimerDashboard({
     isDataLoaded,
 }: TimerDashboardProps) {
     const [now, setNow] = useState(new Date());
+    
+    const userTimeZone = useMemo(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                return Intl.DateTimeFormat().resolvedOptions().timeZone;
+            } catch (e) {
+                return JST_TZ;
+            }
+        }
+        return JST_TZ;
+    }, []);
+
+    const isJst = userTimeZone === JST_TZ;
 
     useEffect(() => {
         setNow(new Date());
         const timer = setInterval(() => setNow(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
-
-    const nextBoundary = useMemo(() => {
-        return getNextBoundary(now);
-    }, [now]);
-
-    const studentsChangeRemaining = useMemo(() => {
-        return Math.max(0, differenceInMilliseconds(nextBoundary, now));
-    }, [now, nextBoundary]);
-
-    const nextVisitLabel = useMemo(() => {
-        return `${formatInTimeZone(nextBoundary, JST_TZ, 'HH:00')} JST`;
-    }, [nextBoundary]);
 
     const cafeTapRemaining = useMemo(() => {
         if (!lastTapTime) return 0;
@@ -59,7 +60,7 @@ export default function TimerDashboard({
     const canTapCafe = useMemo(() => {
         if (!isDataLoaded) return false;
         if (!lastTapTime) return true;
-        return cafeTapRemaining <= 600000;
+        return cafeTapRemaining <= 0;
     }, [isDataLoaded, lastTapTime, cafeTapRemaining]);
 
     const ticket1Remaining = useMemo(() => {
@@ -71,93 +72,131 @@ export default function TimerDashboard({
         return differenceInMilliseconds(addHours(ticket2Time, 20), now);
     }, [now, ticket2Time]);
 
-    const windowStarts = useMemo(() => {
+    const nextBoundary = useMemo(() => getNextBoundary(now), [now]);
+    const dailySlots = useMemo(() => {
         let cycleStart = new Date(nextBoundary);
-        
         const boundaryHourJst = parseInt(formatInTimeZone(nextBoundary, JST_TZ, 'H'), 10);
 
         if (boundaryHourJst === 4) {
-            cycleStart = addHours(cycleStart, -24);
+            cycleStart = addHours(nextBoundary, -24);
+        } else if (boundaryHourJst === 1) { 
+            cycleStart = addHours(nextBoundary, -21);
         } else {
-            cycleStart = addHours(cycleStart, -12);
+            const hoursSince4 = boundaryHourJst - 4;
+            cycleStart = addHours(nextBoundary, -(hoursSince4 + 3)); 
         }
-        return Array.from({ length: 8 }, (_, i) => addHours(cycleStart, i * 3));
-    }, [nextBoundary]);
 
-    const completedMarkers = useMemo(() => {
-        return windowStarts.map((start) => {
-            return (tapHistory || []).some((entry) => {
-                const t = new Date(entry);
-                return t >= start && t < addHours(start, 3);
+        return Array.from({ length: 8 }, (_, i) => {
+            const start = addHours(cycleStart, i * 3);
+            const end = addHours(start, 3);
+            
+            const timeJst = formatInTimeZone(start, JST_TZ, 'HH:mm');
+            const timeLocal = formatInTimeZone(start, userTimeZone, 'HH:mm');
+            
+            let mainLabel = timeJst;
+            let subLabel = null;
+
+            if (!isJst) {
+                mainLabel = timeLocal;
+                subLabel = `${timeJst} JST`;
+            }
+            
+            const tapEntry = (tapHistory || []).find((t) => {
+                return t >= start.getTime() && t < end.getTime();
             });
+
+            const tapTimeLocal = tapEntry ? formatInTimeZone(tapEntry, userTimeZone, 'HH:mm') : null;
+            const tapTimeJst = tapEntry ? formatInTimeZone(tapEntry, JST_TZ, 'HH:mm') : null;
+
+            return {
+                mainLabel,
+                subLabel,
+                tapTimeLocal,
+                tapTimeJst,
+                isCurrent: now >= start && now < end,
+                hasTapped: !!tapEntry
+            };
         });
-    }, [windowStarts, tapHistory]);
+    }, [nextBoundary, tapHistory, now, userTimeZone, isJst]);
 
     return (
         <div className="dashboard-container">
             <div className="timer-card">
-                <div className="flex items-center justify-between">
-                    <h2 className="timer-card-title compact">Next Visit</h2>
-                    <div className="timer-sub-info">
-                        <span>▶</span>
-                        <span>{nextVisitLabel}</span>
-                    </div>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="timer-card-title">Next Visit</h2>
                 </div>
-                <div className="countdown-text-l"><CountdownDisplay milliseconds={studentsChangeRemaining} /></div>
+
+                <div className="countdown-text-l mb-6">
+                    <CountdownDisplay milliseconds={cafeTapRemaining} />
+                </div>
+
+                <div className="slot-grid">
+                    {dailySlots.map((slot, i) => (
+                        <div 
+                            key={i}
+                            className={`slot-item ${
+                                slot.hasTapped 
+                                    ? 'slot-tapped' 
+                                    : slot.isCurrent
+                                        ? 'slot-current'
+                                        : 'slot-default'
+                            }`}
+                        >
+                            {slot.hasTapped ? (
+                                <div className="flex flex-col items-center leading-tight">
+                                    <span className="slot-text-main">{slot.tapTimeLocal}</span>
+                                    {!isJst && (
+                                        <span className="slot-text-sub whitespace-nowrap">
+                                            ({slot.tapTimeJst} JST)
+                                        </span>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center leading-tight">
+                                    <span className="slot-text-main">{slot.mainLabel}</span>
+                                    {slot.subLabel && (
+                                        <span className="slot-text-sub whitespace-nowrap">
+                                            ({slot.subLabel})
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                <button 
+                    onClick={() => onTap()} 
+                    disabled={!canTapCafe || isSyncing}
+                    className="btn-timer btn-timer-tap"
+                >
+                    { !isDataLoaded ? 'Wait...' : isSyncing ? 'Wait...' : 'Tap' }
+                </button>
             </div>
 
             <div className="timer-card">
-                <div className="flex items-center justify-between">
-                    <h2 className="timer-card-title">Next Tap</h2>
-                    <div className="tap-markers" role="list">
-                        {windowStarts.map((_start, i) => {
-                            const completed = completedMarkers[i];
-                            return (
-                                <div
-                                    key={i}
-                                    className={`tap-marker ${completed ? 'completed' : ''}`}
-                                />
-                            );
-                        })}
+                <h2 className="timer-card-title mb-4">Next Call</h2>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-2">
+                        <div className="countdown-text-s bg-background/50 p-2 rounded">
+                            <CountdownDisplay milliseconds={ticket1Remaining} />
+                        </div>
+                        <button 
+                            onClick={() => onInvite(1)}
+                            disabled={!isDataLoaded || ticket1Remaining > 0 || isSyncing}
+                            className="btn-timer btn-timer-tap"
+                        >{ isSyncing ? 'Wait...' : 'Ticket 1' }</button>
                     </div>
-                </div>
-                <div className="countdown-text-l"><CountdownDisplay milliseconds={cafeTapRemaining} /></div>
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                    <button 
-                        onClick={() => onTap()} 
-                        disabled={!canTapCafe || isSyncing}
-                        className="btn-timer btn-timer-tap"
-                    >
-                        { !isDataLoaded ? 'Wait...' : isSyncing ? 'Wait...' : 'Tap' }
-                    </button>
-                    <div className="flex flex-col items-center justify-center text-center">
-                        <span className="history-title text-muted-foreground">Last Tap</span>
-                        <span className="history-text">
-                            {lastTapTime 
-                                ? formatInTimeZone(lastTapTime, JST_TZ, 'MM/dd HH:mm')
-                                : 'None'}
-                        </span>
+                    <div className="flex flex-col gap-2">
+                        <div className="countdown-text-s bg-background/50 p-2 rounded">
+                            <CountdownDisplay milliseconds={ticket2Remaining} />
+                        </div>
+                        <button 
+                            onClick={() => onInvite(2)}
+                            disabled={!isDataLoaded || ticket2Remaining > 0 || isSyncing}
+                            className="btn-timer btn-timer-tap"
+                        >{ isSyncing ? 'Wait...' : 'Ticket 2' }</button>
                     </div>
-                </div>
-            </div>
-
-            <div className="timer-card">
-                <h2 className="timer-card-title">Next Call</h2>
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="countdown-text-s"><CountdownDisplay milliseconds={ticket1Remaining} /></div>
-                    <div className="countdown-text-s"><CountdownDisplay milliseconds={ticket2Remaining} /></div>
-                </div>
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                    <button 
-                        onClick={() => onInvite(1)}
-                        disabled={!isDataLoaded || ticket1Remaining > 0 || isSyncing}
-                        className="btn-timer btn-timer-tap"
-                    >{ isSyncing ? 'Wait' : 'Ticket 1' }</button>
-                    <button 
-                        onClick={() => onInvite(2)}
-                        disabled={!isDataLoaded || ticket2Remaining > 0 || isSyncing}
-                        className="btn-timer btn-timer-tap"
-                    >{ isSyncing ? 'Wait' : 'Ticket 2' }</button>
                 </div>
             </div>
         </div>

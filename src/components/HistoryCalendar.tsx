@@ -9,15 +9,10 @@ interface HistoryCalendarProps {
 
 const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
   const [currentDate, setCurrentDate] = useState(() => toZonedTime(new Date(), JST_TZ));
-  const getLogicalDateString = (timestamp: number): string => {
-    const date = new Date(timestamp);
-    const hourJst = parseInt(formatInTimeZone(date, JST_TZ, 'H'), 10);
-    const zonedDate = toZonedTime(date, JST_TZ);
 
-    if (hourJst < 4) {
-      zonedDate.setDate(zonedDate.getDate() - 1);
-    }
-    return formatInTimeZone(zonedDate, JST_TZ, 'yyyy-MM-dd');
+  const getLogicalDateString = (timestamp: number): string => {
+    const adjustedTime = timestamp - 4 * 60 * 60 * 1000;
+    return formatInTimeZone(adjustedTime, JST_TZ, 'yyyy-MM-dd');
   };
 
   const tapsByDate = (tapHistory || []).reduce((acc, tap) => {
@@ -31,12 +26,9 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-
-  const firstDayOfMonth = new Date(year, month, 1);
-  const lastDayOfMonth = new Date(year, month + 1, 0);
-
-  const startDay = firstDayOfMonth.getDay();
-  const daysInMonth = lastDayOfMonth.getDate();
+  const firstDayIndex = new Date(year, month, 1).getDay();
+  const startDay = (firstDayIndex + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const getTapBgClass = (tapCount: number) => {
     if (tapCount === 0) return 'bg-tap-1';
@@ -56,10 +48,11 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
   }
 
   for (let day = 1; day <= daysInMonth; day++) {
-    const cellDate = new Date(year, month, day);
-    const dateStr = formatInTimeZone(cellDate, JST_TZ, 'yyyy-MM-dd');
+    const monthStr = String(month + 1).padStart(2, '0');
+    const dayStr = String(day).padStart(2, '0');
+    const dateKey = `${year}-${monthStr}-${dayStr}`;
     
-    const taps = tapsByDate[dateStr] || [];
+    const taps = tapsByDate[dateKey] || [];
     const bgClass = getTapBgClass(taps.length);
     
     calendarDays.push(
@@ -73,18 +66,20 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
   }
 
   const changeMonth = (offset: number) => {
-    setCurrentDate(new Date(year, month + offset, 1));
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() + offset);
+    setCurrentDate(newDate);
   };
 
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
         <button onClick={() => changeMonth(-1)} className="cal-nav">Prev</button>
-        <div className="cal-info">{year}年 {month + 1}月</div>
+        <div className="cal-info">{year}. {month + 1}</div>
         <button onClick={() => changeMonth(1)} className="cal-nav">Next</button>
       </div>
       <div className="grid grid-cols-7 gap-1.5">
-        {['日', '月', '火', '水', '木', '金', '土'].map(d => (
+        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
           <div key={d} className="text-center cal-week">{d}</div>
         ))}
         {calendarDays}

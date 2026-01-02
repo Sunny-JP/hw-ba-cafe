@@ -3,22 +3,24 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/gen-sw.js && next dev",
-    "build": "node scripts/gen-sw.js && next build",
+    "dev": "next dev",
+    "build": "next build",
+    "pages:build": "npx @cloudflare/next-on-pages",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
     "@react-oauth/google": "^0.12.2",
+    "@supabase/supabase-js": "^2.89.0",
     "chart.js": "^4.5.1",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
-    "firebase": "^12.6.0",
     "next": "16.0.10",
     "react": "19.2.3",
     "react-chartjs-2": "^5.3.1",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-onesignal": "^3.4.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",

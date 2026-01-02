@@ -1,185 +1,124 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useAuth, db, auth, functions, getFreshFcmToken } from "@/hooks/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { httpsCallable } from "firebase/functions";
+import { useAuth, supabase } from "@/hooks/useAuth";
+import OneSignal from 'react-onesignal';
+import OneSignalInit from "@/components/OneSignalInit";
+
 import Header from "@/components/Header";
 import TimerDashboard from "@/components/TimerDashboard";
 import BottomNavBar from "@/components/BottomNavBar";
 import HistoryCalendar from "@/components/HistoryCalendar";
 import Settings from "@/components/Settings";
 import SidePanel from "@/components/SidePanel";
-import { shouldScheduleNotification } from "@/lib/timeUtils";
 
-interface OldTapEntry { timestamp: string; }
-interface AppData {
-  tapHistory: number[];
-  ticket1Time: number | null;
-  ticket2Time: number | null;
-  fcmToken?: string; 
-}
 type Tab = 'timer' | 'history';
 
 export default function Home() {
-  const { isLoggedIn, isLoading, loginWithGoogle } = useAuth();
+  const { isLoggedIn, isLoading, loginWithDiscord } = useAuth();
+  
   const [activeTab, setActiveTab] = useState<Tab>('timer');
   const [tapHistory, setTapHistory] = useState<number[]>([]);
   const [ticket1Time, setTicket1Time] = useState<Date | null>(null);
   const [ticket2Time, setTicket2Time] = useState<Date | null>(null);
+  
   const [isSyncing, setIsSyncing] = useState(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
 
-  const saveDataToFirebase = useCallback(async (data: AppData) => {
-    const uid = auth.currentUser?.uid;
-    if (!uid || isSyncing) return;
-    
-    setIsSyncing(true);
-    try {
-      const userDocRef = doc(db, "users", uid);
-      await setDoc(userDocRef, data, { merge: true });
-    } catch (err) {
-      console.error("Firebase save error", err);
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [isSyncing]);
+  const loadData = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-  const loadDataFromFirebase = useCallback(async () => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
-    
     try {
-      const userDocRef = doc(db, "users", uid);
-      const docSnap = await getDoc(userDocRef);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
       
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        let needsSave = false;
-        
-        if (data.tapHistory && data.tapHistory.length > 0 && typeof data.tapHistory[0] === 'object' && data.tapHistory[0] !== null) {
-          data.tapHistory = (data.tapHistory as OldTapEntry[]).map(entry => new Date(entry.timestamp).getTime());
-          needsSave = true;
-        }
-        if (data.ticket1Time && typeof data.ticket1Time === 'string') {
-          data.ticket1Time = new Date(data.ticket1Time).getTime();
-          needsSave = true;
-        }
-        if (data.ticket2Time && typeof data.ticket2Time === 'string') {
-          data.ticket2Time = new Date(data.ticket2Time).getTime();
-          needsSave = true;
-        }
-        
-        if (needsSave) {
-          await saveDataToFirebase(data as AppData);
-        }
-        
-        if (data.tapHistory) setTapHistory(data.tapHistory as number[]);
-        if (data.ticket1Time) setTicket1Time(new Date(data.ticket1Time));
-        if (data.ticket2Time) setTicket2Time(new Date(data.ticket2Time));
+      if (data) {
+        if (data.tap_history) setTapHistory(data.tap_history as number[]);
+        if (data.ticket1_time) setTicket1Time(new Date(data.ticket1_time));
+        if (data.ticket2_time) setTicket2Time(new Date(data.ticket2_time));
       } else {
-        const initialData: AppData = { tapHistory: [], ticket1Time: null, ticket2Time: null };
-        await saveDataToFirebase(initialData);
+        console.log("No profile found, waiting for trigger...");
       }
-    } catch (err) {
-      console.error("Firebase load error", err);
+    } catch (e) {
+      console.error("Load error", e);
     } finally {
       setIsDataLoaded(true);
     }
-  }, [saveDataToFirebase]);
-  
-  const handleTap = async () => { 
-    if (!isLoggedIn) return; 
-    if (isSyncing) return;
+  }, []);
+
+  const syncData = async (newTapTime?: number, t1?: number | null, t2?: number | null) => {
+    if (!isLoggedIn) return;
     setIsSyncing(true);
-
+    
     try {
-        const uid = auth.currentUser?.uid;
-        if (!uid) return;
-        let currentToken: string | undefined = undefined;
-        try {
-            const token = await getFreshFcmToken();
-            if (token) {
-                currentToken = token;
-                console.log("Got fresh token:", token);
-            } else {
-                console.warn("Failed to get fresh token");
-            }
-        } catch (e) {
-            console.error("Token error:", e);
-        }
+      const { data: { session } } = await supabase.auth.getSession();
+      const onesignalId = (OneSignal as any).User?.PushSubscription?.id;
 
-        const tapTime = new Date(); 
-        const newEntry = tapTime.getTime(); 
-        const newHistory = [...tapHistory, newEntry]; 
-        setTapHistory(newHistory); 
-        
-        const newData: AppData = { 
-            tapHistory: newHistory, 
-            ticket1Time: ticket1Time?.getTime() || null, 
-            ticket2Time: ticket2Time?.getTime() || null,
-            fcmToken: currentToken 
-        }; 
-        
-        try {
-            const userDocRef = doc(db, "users", uid);
-            await setDoc(userDocRef, newData, { merge: true });
-            console.log("DB saved successfully (Direct Write)");
-        } catch (error) {
-            console.error("Direct DB save failed:", error);
-        }
+      console.log("OneSignal ID:", onesignalId);
+      if (!onesignalId) {
+        console.log("Notification ID not ready yet.");
+      }
 
-        if (shouldScheduleNotification(tapTime)) { 
-            try { 
-                const scheduleFn = httpsCallable(functions, 'scheduleNotification'); 
-                await scheduleFn(); 
-                console.log("Notification scheduled"); 
-            } catch (error) { 
-                console.error("Notification schedule failed", error); 
-            } 
-        } else { 
-            console.log("Notification skipped (boundary limit)"); 
-        }
-        
+      await fetch('/api/tap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({
+          tapTime: newTapTime,
+          onesignalId: onesignalId,
+          ticket1Time: t1,
+          ticket2Time: t2
+        })
+      });
+      console.log("Sync success");
     } catch (error) {
-        console.error("Tap process failed:", error);
+      console.error("Sync failed", error);
     } finally {
-        setIsSyncing(false);
+      setIsSyncing(false);
     }
   };
 
-  const handleInvite = async (ticketNumber: 1 | 2) => { 
-    const newInviteTime = new Date(); 
-    let newData: AppData; 
+  const handleTap = async () => { 
+    if (!isLoggedIn || isSyncing) return;
     
-    if (ticketNumber === 1) { 
-        setTicket1Time(newInviteTime); 
-        newData = { tapHistory, ticket1Time: newInviteTime.getTime(), ticket2Time: ticket2Time?.getTime() || null }; 
-    } else { 
-        setTicket2Time(newInviteTime); 
-        newData = { tapHistory, ticket1Time: ticket1Time?.getTime() || null, ticket2Time: newInviteTime.getTime() }; 
-    } 
-    
-    if (isLoggedIn) await saveDataToFirebase(newData); 
+    const tapTime = new Date().getTime();
+    setTapHistory([...tapHistory, tapTime]);
+    await syncData(tapTime, 
+        ticket1Time?.getTime() || null, 
+        ticket2Time?.getTime() || null
+    );
   };
 
-  const handleGoogleLogin = async () => { 
-    try { 
-        await loginWithGoogle(); 
-    } catch (error) { 
-        console.error("Google Login failed", error); 
-    } 
+  const handleInvite = async (ticketNumber: 1 | 2) => { 
+    const now = new Date();
+    let t1 = ticket1Time?.getTime() || null;
+    let t2 = ticket2Time?.getTime() || null;
+
+    if (ticketNumber === 1) { 
+        setTicket1Time(now); 
+        t1 = now.getTime();
+    } else { 
+        setTicket2Time(now); 
+        t2 = now.getTime();
+    }
+    await syncData(undefined, t1, t2);
   };
 
   useEffect(() => { 
     if (isLoggedIn && !isLoading) { 
-        loadDataFromFirebase(); 
+        loadData(); 
     } else if (!isLoggedIn && !isLoading) { 
         setTapHistory([]); 
         setIsDataLoaded(true); 
     } 
-  }, [isLoggedIn, isLoading, loadDataFromFirebase]);
+  }, [isLoggedIn, isLoading, loadData]);
 
   const lastTap = tapHistory.length > 0 ? tapHistory[tapHistory.length - 1] : null;
   const lastTapTime = lastTap ? new Date(lastTap) : null;
@@ -190,16 +129,16 @@ export default function Home() {
 
   return (
     <div className="bg-background h-screen flex flex-col">
+      <OneSignalInit />
       <Header isLoggedIn={isLoggedIn} onMenuClick={() => setIsSidePanelOpen(true)} />
-
       <main className="pt-16 pb-16 min-[1000px]:pb-0 flex-1 flex flex-col">
         {!isLoggedIn ? (
           <div className="flex flex-col items-center justify-center flex-1 p-8">
             <div className="timer-card text-center bg-card border border-muted p-6 rounded-lg shadow-lg">
               <h2 className="text-xl font-bold mb-4">Welcome!</h2>
               <p className="mb-6 text-muted-foreground">タイマーを利用するにはログインしてください</p>
-              <button onClick={handleGoogleLogin} className="btn-timer btn-timer-tap">
-                Google Login
+              <button onClick={loginWithDiscord} className="btn-timer btn-timer-tap" style={{ color: '#ffffff', backgroundColor: '#5865F2' }}>
+                Discord Login
               </button>
             </div>
           </div>
@@ -225,7 +164,6 @@ export default function Home() {
                   </div>
               )}
             </div>
-
             {/* Desktop View */}
             <div className="hidden min-[1000px]:flex flex-1 items-center justify-center p-6 h-[calc(100vh-64px)] overflow-hidden">
               <div className="grid grid-cols-2 gap-6 w-full max-w-[160svh] mx-auto items-stretch">

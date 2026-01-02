@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { auth, db, requestNotificationPermission, unregisterNotification } from "@/hooks/firebase"; 
-import { signOut, deleteUser, onAuthStateChanged, User } from "firebase/auth";
-import { doc, deleteDoc, onSnapshot } from "firebase/firestore";
+import { useAuth, supabase } from "@/hooks/useAuth"; 
+import OneSignal from 'react-onesignal';
 
 const LogoutIcon = ({ className = 'h-5 w-5 mr-2' }: { className?: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -30,38 +29,9 @@ const BellIcon = ({ className = 'h-5 w-5 mr-2' }: { className?: string }) => (
 interface SettingsProps {}
 
 const Settings = ({}: SettingsProps) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [isFcmRegistered, setIsFcmRegistered] = useState(false);
-    const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+    const { isLoggedIn, logout, avatarUrl, displayName } = useAuth();
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    useEffect(() => {
-        let unsubDb: () => void;
-        const unsubAuth = onAuthStateChanged(auth, (u) => {
-            setUser(u);
-            if (u) {
-                unsubDb = onSnapshot(doc(db, "users", u.uid), (doc) => {
-                    const data = doc.data();
-                    setIsFcmRegistered(!!data?.fcmToken);
-                });
-            } else {
-                setIsFcmRegistered(false);
-            }
-        });
-
-        if ('Notification' in window) {
-            setNotificationPermission(Notification.permission);
-        }
-
-        return () => {
-            unsubAuth();
-            if (unsubDb) unsubDb();
-        };
-    }, []);
-
-    const isLoggedIn = !!user;
-    const displayName = (user as any)?.displayName || (user as any)?.email || "No Name";
-    const avatar = (user as any)?.photoURL || null;
-    
     const menuItems = [
         { label: 'About', path: '/about' },
         { label: '利用規約', path: '/terms' },
@@ -69,107 +39,52 @@ const Settings = ({}: SettingsProps) => {
         { label: '運営者情報', path: '/operator' },
     ];
 
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [isProcessingNotif, setIsProcessingNotif] = useState(false);
-
     const handleNotificationClick = async () => {
-        if (!('Notification' in window)) {
-            alert('このブラウザは通知をサポートしていません。');
-            return;
-        }
-        const uid = auth.currentUser?.uid;
-        if (!uid) {
-            alert("ログインが必要です");
-            return;
-        }
-
-        setIsProcessingNotif(true);
-
         try {
-            if (notificationPermission === 'denied') {
-                alert("通知がブロックされています。\nブラウザの設定から通知許可をリセットしてください。");
+            if (!OneSignal.User) {
+                alert("通知システムを読み込み中です。少々お待ちください。");
                 return;
             }
 
-            if (isFcmRegistered) {
-                await unregisterNotification(uid);
-                alert("通知設定をOFFにしました。");
+            const isOptedIn = OneSignal.User.PushSubscription.optedIn;
+
+            if (isOptedIn) {
+                await OneSignal.User.PushSubscription.optOut();
+                alert("通知をOFFにしました。");
             } else {
-                const perm = await Notification.requestPermission();
-                if (perm !== 'granted') {
-                    alert("通知が許可されませんでした。");
-                    return;
-                }
-
-                await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-                    scope: '/',
-                    updateViaCache: 'none' 
-                });
-
-                const tokenPromise = requestNotificationPermission(uid);
-                const timeoutPromise = new Promise<boolean>((_, reject) => 
-                    setTimeout(() => reject(new Error("タイムアウト: 応答がありません。ネットワーク環境を確認してください。")), 15000)
-                );
-
-                const success = await Promise.race([tokenPromise, timeoutPromise]);
+                await OneSignal.User.PushSubscription.optIn();
+                await OneSignal.Slidedown.promptPush();
                 
-                if (success) {
-                    alert("通知設定をONにしました！");
-                } else {
-                    alert("設定に失敗しました。もう一度お試しください。");
-                }
-                
-                setNotificationPermission(Notification.permission);
+                alert("通知をONにしました！");
             }
-        } catch (error: any) {
-            console.error(error);
-            alert(`エラーが発生しました: ${error.message}`);
-        } finally {
-            setIsProcessingNotif(false);
+        } catch (e) {
+            console.error(e);
+            alert("設定の変更に失敗しました。\nブラウザの通知許可設定をご確認ください。");
         }
     };
 
-    const getNotificationButtonText = () => {
-        if (notificationPermission === 'denied') return '通知: ブロック中';
-        if (isFcmRegistered) return '通知OFF';
-        return '通知ON';
-    };
-    
-    const getNotificationButtonClass = () => {
-        return "cal-nav flex items-center justify-center p-2 rounded w-full ";
-    };
-
     const handleLogoutClick = async () => {
-        if (window.confirm("本当にログアウトしますか？\n（ログアウトしてもデータは削除されません）")) {
-            await signOut(auth);
+        if (window.confirm("ログアウトしますか？\n（データは削除されません）")) {
+            await logout();
             window.location.href = '/';
         }
     };
 
-const handleDeleteData = async () => {
+    const handleDeleteData = async () => {
         if (!window.confirm("本当に全データを削除しますか？\n（この操作は取り消せません）")) return;
-        const user = auth.currentUser;
-        if (!user) return;
         
         setIsDeleting(true);
         try {
-            await deleteDoc(doc(db, "users", user.uid));
-            if ('serviceWorker' in navigator) {
-                const registrations = await navigator.serviceWorker.getRegistrations();
-                for (const registration of registrations) {
-                    await registration.unregister();
-                }
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await supabase.from('profiles').delete().eq('id', user.id);
+                await logout();
+                alert("データを削除しました。");
+                window.location.href = "/";
             }
-            await deleteUser(user);
-            alert("アカウントと全データを削除しました。");
-            window.location.href = "/";
         } catch (err: any) {
             console.error(err);
-            if (err.code === 'auth/requires-recent-login') {
-                alert("セキュリティ保護のため、再ログインが必要です。\n一度ログアウトして再ログインしてから、もう一度お試しください。");
-            } else {
-                alert("削除に失敗しました: " + err.message);
-            }
+            alert("削除に失敗しました: " + err.message);
         } finally {
             setIsDeleting(false);
         }
@@ -193,8 +108,8 @@ const handleDeleteData = async () => {
                 {isLoggedIn && (
                     <>
                         <div className="flex items-center gap-4 mb-4 p-2">
-                            {avatar ? (
-                                <img src={avatar} alt="user avatar" className="w-10 h-10 rounded-full" />
+                            {avatarUrl ? (
+                                <img src={avatarUrl} alt="user avatar" className="w-10 h-10 rounded-full" />
                             ) : (
                                 <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
                                     <span className="text-xl">?</span>
@@ -207,12 +122,12 @@ const handleDeleteData = async () => {
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <button 
                                 onClick={handleNotificationClick}
-                                disabled={isProcessingNotif}
-                                className={getNotificationButtonClass()}
+                                className="cal-nav flex items-center justify-center p-2 rounded w-full"
                             >
                                 <BellIcon />
-                                <span>{isProcessingNotif ? '処理中...' : getNotificationButtonText()}</span>
+                                <span>通知設定</span>
                             </button>
+
                             <button 
                                 onClick={handleDeleteData}
                                 disabled={isDeleting}

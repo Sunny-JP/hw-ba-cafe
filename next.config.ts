@@ -28,11 +28,8 @@ const nextConfig: NextConfig = {
 const withPWA = withPWAInit({
   dest: "public",
   register: true,
-  // 開発モードではPWA機能を無効にする
   disable: process.env.NODE_ENV === "development",
-  // Firebase通知用SWを除外
-  publicExcludes: ["!firebase-messaging-sw.js"], 
-  // 内部設定
+  publicExcludes: ["!OneSignalSDKWorker.js"], 
   workboxOptions: {
     skipWaiting: true,
     clientsClaim: true,
