@@ -1,5 +1,6 @@
 const config = {
   default: {
+    placement: "global",
     override: {
       wrapper: "cloudflare-node",
       converter: "edge",
@@ -10,7 +11,6 @@ const config = {
     },
   },
   edgeExternals: ["node:crypto"],
-
   middleware: {
     external: true,
     override: {

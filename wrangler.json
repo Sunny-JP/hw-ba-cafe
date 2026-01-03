@@ -10,5 +10,8 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
-  "minify": true
+  "minify": true,
+  "observability": {
+    "enabled": true
+  }
 }
