@@ -11,10 +11,9 @@ const nextConfig: NextConfig = {
     ],
     unoptimized: true,
   },
-
-//  turbopack: {}, 
-
-  output: 'standalone'
+  
+  turbopack: {}, 
+  output: 'standalone',
 };
 
 const withPWA = withPWAInit({
