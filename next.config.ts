@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
   },
   
   turbopack: {}, 
+  output: 'standalone',
 };
 
 const withPWA = withPWAInit({
