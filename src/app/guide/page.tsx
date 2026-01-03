@@ -10,10 +10,24 @@ export default function GuidePage() {
           
           <section>
             <h2 className="text-xl font-bold mb-3 text-foreground border-b border-muted pb-2">
-              🟦 通知設定
+              🟦 カフェタイマーの使い方
+            </h2>
+            <ul className="list-disc pl-5 space-y-2">
+              <li>
+                <strong>Next Tap:</strong> 生徒さんと触れ合うことができるまでの時間をカウントダウンします。「Tap」ボタンを押すと履歴が記録され、カウントダウンが始まります。
+              </li>
+              <li>
+                <strong>Next Call:</strong> 生徒さんを招待するチケット（招待券）のクールタイムを管理します。使用した時刻にボタンを押すと、次の使用可能時刻までのカウントダウンが始まります。
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-bold mb-3 text-foreground border-b border-muted pb-2">
+              🟦 通知設定について
             </h2>
             <p className="mb-4">
-              メニュー内の「Settings」＞「通知設定」ボタンを押すことで、カフェの収益受取タイミングなどをプッシュ通知でお知らせします。
+              メニュー内の「通知設定」から、生徒さんと触れ合える時刻をプッシュ通知でお知らせします。
             </p>
             
             <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-sm text-red-600 dark:text-red-400">
@@ -25,20 +39,6 @@ export default function GuidePage() {
                 通知設定を行う際は、<strong>このサイト（ドメイン）を許可リストに追加するか、一時的に機能をOFFにして</strong>からページを再読み込みしてください。
               </p>
             </div>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-bold mb-3 text-foreground border-b border-muted pb-2">
-              🟦 カフェタイマーの使い方
-            </h2>
-            <ul className="list-disc pl-5 space-y-2">
-              <li>
-                <strong>Next Visit:</strong> カフェのクレジットが満タンになるまでの時間をカウントダウンします。「Tap」ボタンを押すと履歴が記録され、タイマーがリセットされます。
-              </li>
-              <li>
-                <strong>Next Call:</strong> 生徒さんを招待するチケット（招待券）のクールタイムを管理します。使用した時刻にボタンを押すと、次の使用可能時間（20時間後）へのカウントダウンが始まります。
-              </li>
-            </ul>
           </section>
 
           <section>

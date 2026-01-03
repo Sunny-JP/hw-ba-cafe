@@ -123,7 +123,7 @@ export default function TimerDashboard({
         <div className="dashboard-container">
             <div className="timer-card">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="timer-card-title">Next Visit</h2>
+                    <h2 className="timer-card-title">Next Tap</h2>
                 </div>
 
                 <div className="countdown-text-l mb-6">
