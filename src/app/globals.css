@@ -199,13 +199,13 @@ body {
   color: var(--muted);
   text-decoration: underline;
   text-underline-offset: 4px;
-  text-decoration-thickness: 2px;
+  text-decoration-thickness: 1.5px;
 }
 .slot-tapped {
   color: var(--primary);
 }
 .slot-text-main {
-  font-size: 3.5cqw;
+  font-size: 4cqw;
 }
 .slot-text-sub {
   font-size: 2cqw;
