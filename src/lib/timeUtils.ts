@@ -12,6 +12,8 @@ export const getNextBoundary = (now: Date): Date => {
 
   if (h < 4) {
     boundaryJst.setHours(4);
+  } else if (h < 16) {
+    boundaryJst.setHours(16);
   } else {
     boundaryJst.setDate(boundaryJst.getDate() + 1);
     boundaryJst.setHours(4);
