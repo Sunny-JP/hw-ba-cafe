@@ -19,13 +19,6 @@ export default function AboutPage() {
             <li>招待券のクールタイム管理</li>
             <li>タップ履歴のカレンダー表示</li>
           </ul>
-
-          <h2 className="text-xl font-bold mt-8 mb-4 text-foreground">権利表記・免責事項</h2>
-          <ul className="list-disc pl-5 space-y-2">
-            <li>本ツールは個人によって制作された非公式ツールであり、株式会社Yostar様、開発元のNEXON Games様とは一切関係ありません。</li>
-            <li>本ツールを利用したことにより損害が生じた場合、制作者は一切の責任を負いません。</li>
-            <li>本ツールのアプリアイコンは、<a href="https://www.flaticon.com/free-icons/coffee-break" title="coffee break icons" target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-400">Freepik社</a> のライセンスの下で使用しています。</li>
-          </ul>
         </div>
 
         <div className="mt-8 pt-4">

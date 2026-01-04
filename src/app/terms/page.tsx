@@ -31,7 +31,9 @@ export default function TermsPage() {
 
           <h3 className="font-bold text-foreground mt-4">4. 著作権</h3>
           <ul className="list-disc pl-5">
+            <li>本サービスは個人によって制作された非公式ツールであり、株式会社Yostar、NEXON Games、およびその他の関連団体とは一切関係ありません。</li>
             <li>本サービス中の『ブルーアーカイブ』に関係するデータ等の著作権は、株式会社Yostar、NEXON Games、およびその他の権利者に帰属します。</li>
+            <li>本サービスのファビコンおよびアプリアイコンは、<a href="https://www.flaticon.com/free-icons/coffee-break" title="coffee break icons" target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-400">Freepik社</a> のライセンスの下で使用しています。</li>
           </ul>
           
           <p className="text-right">2026年1月1日 発効</p>
