@@ -35,6 +35,13 @@ export const getSessionEndTime = (lastTapTime: Date | null): Date | null => {
 };
 
 export const shouldScheduleNotification = (tapTime: Date): boolean => {
+  const jstNow = toZonedTime(tapTime, JST_TZ);
+  const h = jstNow.getHours();
+
+  if ((h >= 1 && h < 4) || (h >= 13 && h < 16)) {
+    return false;
+  }
+
   const standardEnd = addHours(tapTime, 3);
   const boundary = getNextBoundary(tapTime);
   return !isAfter(standardEnd, boundary);
