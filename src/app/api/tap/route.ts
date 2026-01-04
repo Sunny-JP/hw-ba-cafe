@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { messages } from '@/lib/messages';
+import { shouldScheduleNotification } from '@/lib/timeUtils';
 
 export const runtime = 'edge';
 
@@ -57,36 +58,39 @@ export async function POST(request: Request) {
     }
 
     if (tapTime) {
-      const sendAfter = new Date(tapTime);
-      sendAfter.setHours(sendAfter.getHours() + 3); // Production
-      // sendAfter.setSeconds(sendAfter.getSeconds() + 180); // Testing
+      // timeUtilsから判定関数をインポートして使用
+      if (shouldScheduleNotification(new Date(tapTime))) {
+        const sendAfter = new Date(tapTime);
+        sendAfter.setHours(sendAfter.getHours() + 3); // Production
+        // sendAfter.setSeconds(sendAfter.getSeconds() + 180); // Testing
 
-      const randomMsg = messages 
-        ? messages[Math.floor(Math.random() * messages.length)]
-        : { title: "Cafe Timer", body: "カフェ業務の時間です" };
-      
-      const notificationPayload = {
-        app_id: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID,
-        include_aliases: { 
-          external_id: [user.id] 
-        },
-        target_channel: "push",
-        contents: { en: randomMsg.body, ja: randomMsg.body },
-        headings: { en: randomMsg.title, ja: randomMsg.title },
-        send_after: sendAfter.toISOString(), 
-      };
+        const randomMsg = messages 
+          ? messages[Math.floor(Math.random() * messages.length)]
+          : { title: "Cafe Timer", body: "カフェ業務の時間です" };
+        
+        const notificationPayload = {
+          app_id: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID,
+          include_aliases: { 
+            external_id: [user.id] 
+          },
+          target_channel: "push",
+          contents: { en: randomMsg.body, ja: randomMsg.body },
+          headings: { en: randomMsg.title, ja: randomMsg.title },
+          send_after: sendAfter.toISOString(), 
+        };
 
-      const osRes = await fetch("https://onesignal.com/api/v1/notifications", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Basic ${process.env.ONESIGNAL_REST_API_KEY}`
-        },
-        body: JSON.stringify(notificationPayload)
-      });
-      
-      if (!osRes.ok) {
-          console.error("OneSignal Error:", await osRes.text());
+        const osRes = await fetch("https://onesignal.com/api/v1/notifications", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Basic ${process.env.ONESIGNAL_REST_API_KEY}`
+          },
+          body: JSON.stringify(notificationPayload)
+        });
+        
+        if (!osRes.ok) {
+            console.error("OneSignal Error:", await osRes.text());
+        }
       }
     }
 
