@@ -72,19 +72,14 @@ export default function TimerDashboard({
         return differenceInMilliseconds(addHours(ticket2Time, 20), now);
     }, [now, ticket2Time]);
 
-    const nextBoundary = useMemo(() => getNextBoundary(now), [now]);
     const dailySlots = useMemo(() => {
-        let cycleStart = new Date(nextBoundary);
-        const boundaryHourJst = parseInt(formatInTimeZone(nextBoundary, JST_TZ, 'H'), 10);
-
-        if (boundaryHourJst === 4) {
-            cycleStart = addHours(nextBoundary, -24);
-        } else if (boundaryHourJst === 1) { 
-            cycleStart = addHours(nextBoundary, -21);
-        } else {
-            const hoursSince4 = boundaryHourJst - 4;
-            cycleStart = addHours(nextBoundary, -(hoursSince4 + 3)); 
+        let cycleStart = new Date(now);
+        const currentHourJst = parseInt(formatInTimeZone(now, JST_TZ, 'H'), 10);
+        if (currentHourJst < 4) {
+            cycleStart = addHours(cycleStart, -24);
         }
+        const cycleStartStr = formatInTimeZone(cycleStart, JST_TZ, "yyyy-MM-dd'T'04:00:00");
+        cycleStart = new Date(cycleStartStr);
 
         return Array.from({ length: 8 }, (_, i) => {
             const start = addHours(cycleStart, i * 3);
@@ -100,14 +95,11 @@ export default function TimerDashboard({
                 mainLabel = timeLocal;
                 subLabel = `${timeJst} JST`;
             }
-            
             const tapEntry = (tapHistory || []).find((t) => {
                 return t >= start.getTime() && t < end.getTime();
             });
-
             const tapTimeLocal = tapEntry ? formatInTimeZone(tapEntry, userTimeZone, 'HH:mm') : null;
             const tapTimeJst = tapEntry ? formatInTimeZone(tapEntry, JST_TZ, 'HH:mm') : null;
-
             return {
                 mainLabel,
                 subLabel,
@@ -117,7 +109,7 @@ export default function TimerDashboard({
                 hasTapped: !!tapEntry
             };
         });
-    }, [nextBoundary, tapHistory, now, userTimeZone, isJst]);
+    }, [tapHistory, now, userTimeZone, isJst]);
 
     return (
         <div className="dashboard-container">
