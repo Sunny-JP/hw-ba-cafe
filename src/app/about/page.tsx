@@ -6,11 +6,9 @@ export default function AboutPage() {
       <div className="max-w-2xl mx-auto bg-card rounded-lg shadow-lg p-8 border border-muted">
         <h1 className="text-3xl font-bold mb-6 text-foreground">About</h1>
         
-        <div className="space-y-4 text-muted-foreground">
+        <div className="space-y-4 font-normal">
           <p>
-            「カフェタイマー」は、ゲーム『ブルーアーカイブ』のカフェ機能を支援する非公式ファンメイドツールです。
-          </p>
-          <p>
+            「Café Timer」は、ゲーム『ブルーアーカイブ』のカフェ機能を支援する非公式ファンメイドツールです。<br />
             生徒さんのカフェ訪問タイミングを通知でお知らせし、先生方の業務をサポートします。
           </p>
           
@@ -22,10 +20,12 @@ export default function AboutPage() {
             <li>タップ履歴のカレンダー表示</li>
           </ul>
 
-          <h2 className="text-xl font-bold mt-8 mb-4 text-foreground">免責事項</h2>
-          <p>
-            本ツールは、ゲーム『ブルーアーカイブ』および運営元の株式会社Yostar様、開発元のNEXON Games様とは一切関係ありません。
-          </p>
+          <h2 className="text-xl font-bold mt-8 mb-4 text-foreground">権利表記・免責事項</h2>
+          <ul className="list-disc pl-5 space-y-2">
+            <li>本ツールは個人によって制作された非公式ツールであり、株式会社Yostar様、開発元のNEXON Games様とは一切関係ありません。</li>
+            <li>本ツールを利用したことにより損害が生じた場合、制作者は一切の責任を負いません。</li>
+            <li>本ツールのアプリアイコンは、<a href="https://www.flaticon.com/free-icons/coffee-break" title="coffee break icons" target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-400">Freepik社</a> のライセンスの下で使用しています。</li>
+          </ul>
         </div>
 
         <div className="mt-8 pt-4">
