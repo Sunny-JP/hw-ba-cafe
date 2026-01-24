@@ -7,7 +7,6 @@ export default function GuidePage() {
         <h1 className="text-3xl font-bold mb-6 text-foreground">使い方ガイド</h1>
         
         <div className="space-y-6 font-normal">
-          
           <section>
             <h2 className="text-xl font-bold mb-3 text-foreground border-b border-muted pb-2">
               🟦 カフェタイマーの使い方
@@ -36,7 +35,7 @@ export default function GuidePage() {
                 <strong>AdGuard</strong> や <strong>uBlock Origin</strong> などの広告ブロック（コンテンツブロッカー）機能を使用している場合、通知システムが「トラッキング」と誤認され、許可ダイアログが表示されないことがあります。
               </p>
               <p className="mt-2">
-                通知設定を行う際は、<strong>このサイト（ドメイン）を許可リストに追加する</strong>か、<strong>一時的に機能をOFF</strong>にしてからページを再読み込みしてください。
+                通知設定を行う際は、<strong>このサイト（ドメイン）を許可リストに追加する</strong>か、<strong>一時的に機能をOFF</strong>にしてからページを再読み込み・通知設定を行ってください。
               </p>
             </div>
           </section>
@@ -50,7 +49,6 @@ export default function GuidePage() {
               同じアカウントでログインすると、PCやスマホなど異なる端末でも同じデータを共有・同期できます。
             </p>
           </section>
-
         </div>
 
         <div className="mt-8 pt-4">

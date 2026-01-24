@@ -6,7 +6,7 @@ export default function TermsPage() {
       <div className="max-w-2xl mx-auto bg-card rounded-lg shadow-lg p-8 border border-muted">
         <h1 className="text-3xl font-bold mb-6 text-foreground">利用規約</h1>
         
-        <div className="space-y-4 text-muted-foreground text-sm">
+        <div className="space-y-4 font-normal text-sm">
           <p>この利用規約（以下、「本規約」といいます。）は、本ウェブサイト上で提供するサービス（以下、「本サービス」といいます。）の利用条件を定めるものです。</p>
 
           <h3 className="font-bold text-foreground mt-4">1. 免責事項</h3>
