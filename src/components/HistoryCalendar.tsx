@@ -31,15 +31,15 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const getTapBgClass = (tapCount: number) => {
-    if (tapCount === 0) return 'bg-tap-1';
-    if (tapCount === 1) return 'bg-tap-2';
-    if (tapCount === 2) return 'bg-tap-3';
-    if (tapCount === 3) return 'bg-tap-4';
-    if (tapCount === 4) return 'bg-tap-5';
-    if (tapCount === 5) return 'bg-tap-6';
-    if (tapCount === 6) return 'bg-tap-7';
-    if (tapCount === 7) return 'bg-tap-8';
-    return 'bg-tap-9';
+    if (tapCount === 0) return 'bg-tap-0';
+    if (tapCount === 1) return 'bg-tap-1';
+    if (tapCount === 2) return 'bg-tap-2';
+    if (tapCount === 3) return 'bg-tap-3';
+    if (tapCount === 4) return 'bg-tap-4';
+    if (tapCount === 5) return 'bg-tap-5';
+    if (tapCount === 6) return 'bg-tap-6';
+    if (tapCount === 7) return 'bg-tap-7';
+    return 'bg-tap-8';
   };
 
   const calendarDays = [];
