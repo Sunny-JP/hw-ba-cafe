@@ -1,6 +1,5 @@
 "use client";
 
-// ★変更: 新しい useAuth をインポート
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { useEffect } from "react";

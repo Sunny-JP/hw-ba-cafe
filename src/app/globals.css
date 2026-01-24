@@ -14,15 +14,17 @@
   --muted: #cccccc;
   --muted-foreground: #777777;
   --nav-foreground: #555555;
-  --tap-bg-1: #ededed;
-  --tap-bg-2: #ddffcc;
-  --tap-bg-3: #caffbb;
-  --tap-bg-4: #b0ffaa;
-  --tap-bg-5: #a0ff99;
-  --tap-bg-6: #88ff88;
-  --tap-bg-7: #73ff80;
-  --tap-bg-8: #55ff70;
-  --tap-bg-9: #00ff5e;
+  --tap-h: 120;
+  --tap-s: 100%;
+  --tap-bg-0: #ededed;
+  --tap-bg-1: hsl(var(--tap-h) var(--tap-s) 95%);
+  --tap-bg-2: hsl(var(--tap-h) var(--tap-s) 93%);
+  --tap-bg-3: hsl(var(--tap-h) var(--tap-s) 89%);
+  --tap-bg-4: hsl(var(--tap-h) var(--tap-s) 85%);
+  --tap-bg-5: hsl(var(--tap-h) var(--tap-s) 77%);
+  --tap-bg-6: hsl(var(--tap-h) var(--tap-s) 72%);
+  --tap-bg-7: hsl(var(--tap-h) var(--tap-s) 65%);
+  --tap-bg-8: hsl(var(--tap-h) var(--tap-s) 50%);
   --setting: #333333;
   --setting-foreground: #000000;
 }
@@ -41,15 +43,17 @@
   --muted: #555555;
   --muted-foreground: #aaaaaa;
   --nav-foreground: #aaaaaa;
-  --tap-bg-1: #151515;
-  --tap-bg-2: #153011;
-  --tap-bg-3: #153911;
-  --tap-bg-4: #154811;
-  --tap-bg-5: #155711;
-  --tap-bg-6: #156611;
-  --tap-bg-7: #158811;
-  --tap-bg-8: #15aa11;
-  --tap-bg-9: #15cc11;
+  --tap-h: 120;
+  --tap-s: 75%;
+  --tap-bg-0: #151515;
+  --tap-bg-8: hsl(var(--tap-h) var(--tap-s) 45%);
+  --tap-bg-7: hsl(var(--tap-h) var(--tap-s) 38%);
+  --tap-bg-6: hsl(var(--tap-h) var(--tap-s) 29%);
+  --tap-bg-5: hsl(var(--tap-h) var(--tap-s) 22%);
+  --tap-bg-4: hsl(var(--tap-h) var(--tap-s) 16%);
+  --tap-bg-3: hsl(var(--tap-h) var(--tap-s) 12%);
+  --tap-bg-2: hsl(var(--tap-h) var(--tap-s) 8%);
+  --tap-bg-1: hsl(var(--tap-h) var(--tap-s) 5%);
 }
 
 html {
@@ -299,6 +303,31 @@ body {
 }
 .bg-tap-9 {
   background-color: var(--tap-bg-9);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 18px;
+  width: 18px;
+  background-color: white;
+  border: 4px solid var(--tap-bg-8);
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+input[type="range"]::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  background-color: white;
+  border: 4px solid var(--tap-bg-8);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .mobile-view {

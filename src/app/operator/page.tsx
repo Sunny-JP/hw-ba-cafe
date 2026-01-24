@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function OperatorPage() {
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="p-6">
       <div className="max-w-2xl mx-auto bg-card rounded-lg shadow-lg p-8 border border-muted">
         <h1 className="text-3xl font-bold mb-6 text-foreground">運営者情報</h1>
         
@@ -10,8 +10,8 @@ export default function OperatorPage() {
           <div className="flex flex-col gap-2">
             <h3 className="font-bold text-foreground">開発</h3>
             <p className="font-normal">
-              代表/運営: さにー (<a href="https://x.com/156miyako" target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-400">@156miyako</a>)<br />
-              ＊＊＊ (<a href="https://x.com/" target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-400">@******</a>)</p>
+              ・さにー (代表) <a href="https://x.com/156miyako" target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-400">@156miyako</a><br />
+              ・ハチか <a href="https://x.com/bite_sour_sweet" target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-400">@bite_sour_sweet</a></p>
           </div>
 
           <div className="flex flex-col gap-2 mt-4">

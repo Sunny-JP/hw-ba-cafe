@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { addHours, differenceInMilliseconds } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import CountdownDisplay from './CountdownDisplay';
-import { getNextBoundary, getSessionEndTime } from '@/lib/timeUtils';
+import { getSessionEndTime } from '@/lib/timeUtils';
 
 const JST_TZ = 'Asia/Tokyo';
 

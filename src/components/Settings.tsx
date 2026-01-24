@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth, supabase } from "@/hooks/useAuth"; 
 import OneSignal from 'react-onesignal';
@@ -31,7 +31,24 @@ interface SettingsProps {}
 const Settings = ({}: SettingsProps) => {
     const { isLoggedIn, logout, avatarUrl, displayName } = useAuth();
     const [isDeleting, setIsDeleting] = useState(false);
+    const [hue, setHue] = useState(120);
 
+    useEffect(() => {
+        const savedHue = localStorage.getItem('theme-hue');
+        if (savedHue) {
+            const h = parseInt(savedHue);
+            setHue(h);
+            document.documentElement.style.setProperty('--tap-h', h.toString());
+        }
+    }, []);
+
+    const handleHueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = parseInt(e.target.value);
+        setHue(val);
+        document.documentElement.style.setProperty('--tap-h', val.toString());
+        localStorage.setItem('theme-hue', val.toString());
+    };
+    
     const menuItems = [
         { label: 'About', path: '/about' },
         { label: '使い方ガイド', path: '/guide' },
@@ -111,7 +128,25 @@ const handleNotificationClick = async () => {
                     </li>
                 ))}
             </ul>
-
+            <div className="p-2">
+                <div className="flex justify-between items-center mb-1">
+                    <label className="text-xs font-mono opacity-60">Calendar Color</label>
+                    <span className="text-xs font-mono opacity-60">Hue: {hue}</span>
+                </div>
+                <input 
+                    type="range" 
+                    min="0" 
+                    max="360" 
+                    value={hue} 
+                    onChange={handleHueChange}
+                    className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                    style={{ 
+                        background: `linear-gradient(to right, 
+                            hsl(0, 80%, 50%), hsl(60, 80%, 50%), hsl(120, 80%, 50%), 
+                            hsl(180, 80%, 50%), hsl(240, 80%, 50%), hsl(300, 80%, 50%), hsl(360, 80%, 50%))` 
+                    }}
+                />
+            </div>
             <div className="mt-8 border-t pt-4">
                 {isLoggedIn && (
                     <>
