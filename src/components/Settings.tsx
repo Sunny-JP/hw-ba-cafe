@@ -144,9 +144,9 @@ const Settings = () => {
                 </ul>
 
                 {/* Color Theme Picker */}
-                <div className="p-3 rounded-xl">
+                <div className="p-2 rounded-xl">
                     <div className="flex justify-between items-center mb-2">
-                        <label className="text-xs font-semibold opacity-70">Theme Color</label>
+                        <label className="text-xs font-mono opacity-70">Theme Color</label>
                         <span className="text-xs font-mono opacity-60">Hue: {hue}</span>
                     </div>
                     <input 
