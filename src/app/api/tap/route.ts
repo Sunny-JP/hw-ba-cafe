@@ -62,23 +62,20 @@ async function cleanupDevices(userId: string, currentId: string) {
     const data = await res.json();
     const subs = data.subscriptions || (data.identity && data.identity.subscriptions) || [];
     
-    const allPushSubs = subs.filter((s: any) => {
-      return String(s.type).includes("Push") || String(s.type) === "1";
-    });
+    const others = subs.filter((s: any) => 
+      (String(s.type).includes("Push") || String(s.type) === "1") && s.id !== currentId
+    );
 
-    const otherDevices = allPushSubs.filter((s: any) => s.id !== currentId);
-
-    otherDevices.sort((a: any, b: any) => {
+    others.sort((a: any, b: any) => {
       const timeA = Number(a.last_active || a.created_at || 0);
       const timeB = Number(b.last_active || b.created_at || 0);
       return timeB - timeA;
     });
 
-    if (allPushSubs.length > 2) {
-      const toDelete = otherDevices.slice(1);
-      
+    const toDelete = others.slice(1); 
+
+    if (toDelete.length > 0) {
       for (const sub of toDelete) {
-        console.log(`[Cleanup] Removing old subscription to make room: ${sub.id}`);
         await fetch(`https://onesignal.com/api/v1/apps/${APP_ID}/subscriptions/${sub.id}`, {
           method: "DELETE",
           headers: { "Authorization": `Basic ${API_KEY}` }
