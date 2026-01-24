@@ -1,110 +1,87 @@
 "use client";
 
-export const runtime = "edge";
+import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
+import { createClient, User } from '@supabase/supabase-js';
+import OneSignal from 'react-onesignal';
 
-import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
-import { useGoogleLogin, googleLogout, TokenResponse } from '@react-oauth/google';
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-// --- 型定義 ---
-interface UserProfile {
-  name: string;
-  email: string;
-  picture: string;
-}
-
-interface AuthContextType {
-  user: UserProfile | null;
-  accessToken: string | null;
+type AuthContextType = {
+  user: User | null;
+  isLoggedIn: boolean;
   isLoading: boolean;
-  login: () => void;
-  logout: () => void;
-}
+  loginWithDiscord: () => Promise<void>;
+  logout: () => Promise<void>;
+  avatarUrl: string | null;
+  displayName: string | null;
+};
 
-// 1. Contextの器を作成
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-// 2. AuthProviderコンポーネント（アプリ全体に認証状態を共有する）
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const handleLogout = useCallback(() => {
-    googleLogout();
-    setUser(null);
-    setAccessToken(null);
-    localStorage.removeItem('googleAuthToken');
-    localStorage.removeItem('userProfile');
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    };
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const handleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        const accessToken = tokenResponse.access_token;
-        setAccessToken(accessToken);
+  const loginWithDiscord = async () => {
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : undefined;
+    
+    await supabase.auth.signInWithOAuth({
+      provider: 'discord',
+      options: {
+        redirectTo: currentOrigin,
+      },
+    });
+  };
 
-        const profileInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+  const logout = async () => {
+    await supabase.auth.signOut();
+    try {
+      await OneSignal.logout();
+    } catch (e) {
+      console.error("OneSignal logout error", e);
+    }
+    setUser(null);
+  };
 
-        if (!profileInfoRes.ok) {
-          throw new Error('Failed to fetch user profile');
-        }
-
-        const profileInfo = await profileInfoRes.json();
-        setUser(profileInfo);
-
-        localStorage.setItem('googleAuthToken', JSON.stringify(tokenResponse));
-        localStorage.setItem('userProfile', JSON.stringify(profileInfo));
-      } catch (error) {
-        console.error("Login process failed:", error);
-        // エラーが発生した場合はクリーンな状態に戻す
-        handleLogout();
-      }
-    },
-    onError: errorResponse => {
-      console.error("Google Login Error:", errorResponse);
-    },
-    scope: 'https://www.googleapis.com/auth/drive.file',
-  });
-
-  useEffect(() => {
-    const init = () => {
-      try {
-        const storedTokenStr = localStorage.getItem('googleAuthToken');
-        const storedProfileStr = localStorage.getItem('userProfile');
-
-        if (storedTokenStr && storedProfileStr) {
-          const storedToken: TokenResponse = JSON.parse(storedTokenStr);
-          const storedProfile: UserProfile = JSON.parse(storedProfileStr);
-          setAccessToken(storedToken.access_token);
-          setUser(storedProfile);
-        }
-      } catch (error) {
-        console.error("Failed to initialize auth state from localStorage", error);
-        handleLogout();
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    init();
-  }, [handleLogout]);
-
-  // Contextに渡す値
-  const value = { user, accessToken, isLoading, login: handleLogin, logout: handleLogout };
+  const avatarUrl = user?.user_metadata?.avatar_url || null;
+  const displayName = user?.user_metadata?.full_name || user?.user_metadata?.custom_claims?.global_name || user?.email || "先生";
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoggedIn: !!user, 
+      isLoading, 
+      loginWithDiscord, 
+      logout,
+      avatarUrl,
+      displayName
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// 3. useAuthカスタムフック（各コンポーネントがこれを使ってContextの値にアクセスする）
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };

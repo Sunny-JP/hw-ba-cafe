@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cafe Timer (hw-ba-cafe)
 
-## Getting Started
+Next.js 16 で構築された、Cloudflare Pages 上で動作するカフェタイマー PWA です。
 
-First, run the development server:
+## 技術スタック
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+* **Framework:** Next.js 16 (App Router)
+* **Deployment:** Cloudflare Pages
+* **Build Tool:** @cloudflare/next-on-pages
+* **PWA:** @ducanh2912/next-pwa
+* **Push Notification:** OneSignal
+* **Styling:** Tailwind CSS
+
+## セットアップ & 開発
+
+### 1. 依存関係のインストール
+```
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. 開発サーバーの起動
+```
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ビルド & デプロイ
+Cloudflare Pages でのビルドには特定の設定が必要です。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Cloudflare Pages ビルド設定
+- Build command: `npx @cloudflare/next-on-pages@1`
+- Build output directory: `.vercel/output/static`
+- Compatibility Date: `2024-12-30`
+- Compatibility Flags: `nodejs_compat`
 
-## Learn More
+### 設定
+1. output 設定の禁止: `next.config.ts`で`output: 'standalone'`や`output: 'export'`は設定しません。設定すると、Cloudflare 向けのビルドプロセスと競合し、404エラーの原因となります。
 
-To learn more about Next.js, take a look at the following resources:
+2. Edge Runtime の指定: APIルート（`src/app/api/**/route.ts`）を Cloudflare Workers 上で動作させるため、各ファイルに以下の指定が必要です。
+``` TypeScript
+export const runtime = 'edge';
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Webpack の明示的使用: Next.js 16 + PWA プラグイン環境において、ビルドの整合性を保つために`package.json`で Webpack モードを指定しています。
+``` JSON
+"build": "next build --webpack"
+```
+## PWA & 通知
+PWA: `public/`ディレクトリ内のアセットを参照し、オフライン動作に対応しています。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+OneSignal: プッシュ通知を実現するため、`OneSignalSDKWorker.js`を`public/`に配置しています。
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## ディレクトリ構造
+- `src/app/api/`: Cloudflare Workers (Edge Runtime) 上で動作する API エンドポイント
+- `public/`: アイコン、マニフェスト、OneSignal SDK 等の静的アセット

@@ -1,53 +1,47 @@
-"use client";
-
-export const runtime = "edge";
-
-import { useState } from 'react';
-import { GoogleOAuthProvider } from '@react-oauth/google';
-import { AuthProvider, useAuth } from '@/hooks/useAuth';
-import { ThemeProvider } from '@/hooks/useTheme';
-import Header from '@/components/Header';
-import SidePane from '@/components/SidePane';
-import "./globals.css";
+import type { Metadata, Viewport } from "next";
 import { Noto_Sans_JP } from "next/font/google";
+import "./globals.css";
+import Providers from "./providers";
+
 const NotoSansJPFont400 = Noto_Sans_JP({ weight: "400", subsets: ["latin"] });
 const NotoSansJPFont700 = Noto_Sans_JP({ weight: "700", subsets: ["latin"] });
 
-function AppLayout({ children }: { children: React.ReactNode }) {
-    const { user, logout } = useAuth();
-    const [isPaneOpen, setIsPaneOpen] = useState(false);
+export const metadata: Metadata = {
+  title: "Café Timer",
+  description: "カフェタイマー",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Café Timer",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
 
-    return (
-        <>
-            <Header onMenuClick={() => setIsPaneOpen(true)} />
-            <SidePane 
-                isOpen={isPaneOpen} 
-                onClose={() => setIsPaneOpen(false)}
-                user={user}
-                logout={logout}
-            />
-            <div className="pt-20"> 
-                {children}
-            </div>
-        </>
-    );
-}
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#fbfbfb' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-
-  if (!clientId) return <html><body>Google Client IDが設定されていません。</body></html>;
-
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="ja">
-      <body className={`${NotoSansJPFont700.className}`}>
-        <GoogleOAuthProvider clientId={clientId}>
-          <AuthProvider>
-            <ThemeProvider>
-              <AppLayout>{children}</AppLayout>
-            </ThemeProvider>
-          </AuthProvider>
-        </GoogleOAuthProvider>
+    <html lang="ja" className="h-full">
+      <body className={`${NotoSansJPFont700.className} ${NotoSansJPFont400.className} h-full`}>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

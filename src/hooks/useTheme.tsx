@@ -17,7 +17,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
-    // 初回読み込み時にlocalStorageからテーマを取得、なければ'light'
     const storedTheme = localStorage.getItem('theme') as Theme | null;
     if (storedTheme) {
       setTheme(storedTheme);
@@ -25,7 +24,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    // themeが変更されたら<html>のクラスとlocalStorageを更新
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);

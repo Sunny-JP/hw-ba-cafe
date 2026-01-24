@@ -1,210 +1,241 @@
 "use client";
 
-export const runtime = "edge";
+import { useState, useEffect, useCallback } from "react";
+import { useAuth, supabase } from "@/hooks/useAuth";
+import OneSignal from 'react-onesignal';
+import OneSignalInit from "@/components/OneSignalInit";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import Header from "@/components/Header";
 import TimerDashboard from "@/components/TimerDashboard";
+import BottomNavBar from "@/components/BottomNavBar";
+import HistoryCalendar from "@/components/HistoryCalendar";
+import Settings from "@/components/Settings";
+import SidePanel from "@/components/SidePanel";
 
-// --- ★ データ構造の定義を変更 ★ ---
-// 個々のタップ記録の型
-export interface TapEntry {
-  timestamp: string;
-  isOshi: boolean;
-}
+type Tab = 'timer' | 'history';
 
-// Driveに保存する全体のデータ型
-interface AppData {
-  tapHistory: TapEntry[];
-  ticket1Time: string | null;
-  ticket2Time: string | null;
+function LoginScreen() {
+  const { loginWithDiscord } = useAuth();
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setIsLoginLoading(true);
+    try {
+      await loginWithDiscord();
+    } catch (error) {
+      console.error("Login failed:", error);
+      alert("ログインに失敗しました");
+      setIsLoginLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center flex-1 p-8">
+      <div className="timer-card text-center bg-card border border-muted p-8 rounded-2xl shadow-lg max-w-sm w-full">
+        <h2 className="text-2xl font-bold mb-2">Welcome!</h2>
+        <p className="mb-8 text-muted-foreground text-sm">
+          利用するにはログインしてください
+        </p>
+        
+        <button 
+          onClick={handleLogin} 
+          disabled={isLoginLoading}
+          className={`
+            w-full py-4 rounded-xl text-lg font-bold transition-all shadow-md
+            ${isLoginLoading 
+              ? 'bg-muted text-muted-foreground cursor-wait' 
+              : 'bg-[#5865F2] text-white hover:brightness-110 hover:shadow-lg'
+            }
+          `}
+        >
+          {isLoginLoading ? 'Connecting...' : 'Discord Login'}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default function Home() {
-  const { user, accessToken, isLoading, login } = useAuth();
+  const { isLoggedIn, isLoading } = useAuth();
   
-  const [tapHistory, setTapHistory] = useState<TapEntry[]>([]);
+  const [activeTab, setActiveTab] = useState<Tab>('timer');
+  const [tapHistory, setTapHistory] = useState<number[]>([]);
   const [ticket1Time, setTicket1Time] = useState<Date | null>(null);
   const [ticket2Time, setTicket2Time] = useState<Date | null>(null);
-
-  const [driveFileId, setDriveFileId] = useState<string | null>(null);
+  
   const [isSyncing, setIsSyncing] = useState(false);
-  const DRIVE_FILENAME = 'ba-cafe-timer-data.json';
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
 
-
-  // --- ★ Google Driveへのデータ保存関数 (完全版) ★ ---
-  const saveDataToDrive = useCallback(async (token: string, data: AppData, isCreating = false) => {
-    if (isSyncing) return; // 同期中の多重実行を防ぐ
-    setIsSyncing(true);
-
-    const content = JSON.stringify(data);
-    const blob = new Blob([content], { type: 'application/json' });
-    const formData = new FormData();
-    const metadata = { name: DRIVE_FILENAME, mimeType: 'application/json' };
-    formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    formData.append('file', blob);
+  const loadData = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
     
-    let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-    let method: 'POST' | 'PATCH' = 'POST';
-
-    // 既存ファイルがあれば更新(PATCH)、なければ新規作成(POST)
-    if (!isCreating && driveFileId) {
-        url = `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`;
-        method = 'PATCH';
-    }
-
     try {
-        const response = await fetch(url, { method, headers: { Authorization: `Bearer ${token}` }, body: formData });
-        if (!response.ok) {
-          const errorBody = await response.text();
-          throw new Error(`Failed to save data: ${errorBody}`);
-        }
-        const result = await response.json();
-        if (result.id) {
-          setDriveFileId(result.id); // 新規作成時にファイルIDを保存
-        }
-    } catch (err) {
-        console.error("Driveへの保存に失敗", err);
-    } finally {
-        setIsSyncing(false);
-    }
-  }, [driveFileId, isSyncing]);
-
-
-  // --- ★ Google Driveからのデータ読み込み関数 (完全版) ★ ---
-  const loadDataFromDrive = useCallback(async (token: string) => {
-    try {
-      const searchParams = new URLSearchParams({ q: `name='${DRIVE_FILENAME}' and 'root' in parents and trashed=false`, fields: 'files(id, name)' });
-      const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?${searchParams}`, { headers: { Authorization: `Bearer ${token}` } });
-      if (!searchRes.ok) throw new Error('Failed to search file');
-      const searchData = await searchRes.json();
-      
-      if (searchData.files && searchData.files.length > 0) {
-        const fileId = searchData.files[0].id;
-        setDriveFileId(fileId);
-        const fileContentRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { Authorization: `Bearer ${token}` } });
-        if (!fileContentRes.ok) throw new Error('Failed to download file');
-        
-        const data: AppData & { lastTapTime?: string } = await fileContentRes.json(); // 古い形式も読めるように型定義
-        
-        // --- ★ 読み込みロジックを更新 ★ ---
-        // tapHistoryがあればそれを使い、なければ古い形式(lastTapTime)から移行する
-        if (data.tapHistory) {
-          setTapHistory(data.tapHistory);
-        } else if (data.lastTapTime) {
-          // 古いデータ形式からの移行処理
-          setTapHistory([{ timestamp: data.lastTapTime, isOshi: false }]);
-        }
-        
-        if (data.ticket1Time) setTicket1Time(new Date(data.ticket1Time));
-        if (data.ticket2Time) setTicket2Time(new Date(data.ticket2Time));
+      if (OneSignal.User) {
+        await OneSignal.login(user.id);
       } else {
-        // 新規作成時は空の履歴で初期化
-        const initialData: AppData = { tapHistory: [], ticket1Time: null, ticket2Time: null };
-        await saveDataToDrive(token, initialData, true);
+        console.log("OneSignal not ready yet");
       }
-    } catch (err) {
-      console.error("Driveからの読み込みに失敗", err);
+    } catch (e) {
+      console.error("OneSignal login error", e);
     }
-  }, [saveDataToDrive]);
 
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (data) {
+        if (data.tap_history) setTapHistory(data.tap_history as number[]);
+        if (data.ticket1_time) setTicket1Time(new Date(data.ticket1_time));
+        if (data.ticket2_time) setTicket2Time(new Date(data.ticket2_time));
+      } else {
+        console.log("No profile found, waiting for trigger...");
+      }
+    } catch (e) {
+      console.error("Load error", e);
+    } finally {
+      setIsDataLoaded(true);
+    }
+  }, []);
 
-  // --- ★ handleTapのロジックを「追記」に変更 ★ ---
-  const handleTap = async (isFave: boolean) => {
-    const newEntry: TapEntry = {
-      timestamp: new Date().toISOString(),
-      isOshi: isFave,
-    };
-    // 既存の履歴に新しい記録を追加
-    const newHistory = [...tapHistory, newEntry];
-    setTapHistory(newHistory);
+  const syncData = async (newTapTime?: number, t1?: number | null, t2?: number | null) => {
+    if (!isLoggedIn) return;
+    setIsSyncing(true);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const onesignalId = (OneSignal as any).User?.PushSubscription?.id;
 
-    if (accessToken) {
-      const newData: AppData = { 
-        tapHistory: newHistory, // 更新された完全な履歴を保存
-        ticket1Time: ticket1Time?.toISOString() || null, 
-        ticket2Time: ticket2Time?.toISOString() || null 
-      };
-      await saveDataToDrive(accessToken, newData);
+      if (!onesignalId) {
+        console.log("Notification ID not ready yet.");
+      }
+
+      await fetch('/api/tap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({
+          tapTime: newTapTime,
+          onesignalId: onesignalId,
+          ticket1Time: t1,
+          ticket2Time: t2
+        })
+      });
+      console.log("Sync success");
+    } catch (error) {
+      console.error("Sync failed", error);
+    } finally {
+      setIsSyncing(false);
     }
   };
 
-  // --- handleInviteは履歴に影響しないので、tapHistoryをそのまま渡す ---
-  const handleInvite = async (ticketNumber: 1 | 2) => {
-    const newInviteTime = new Date();
-    let newData: AppData;
-    if (ticketNumber === 1) {
-        setTicket1Time(newInviteTime);
-        newData = { tapHistory, ticket1Time: newInviteTime.toISOString(), ticket2Time: ticket2Time?.toISOString() || null };
-    } else {
-        setTicket2Time(newInviteTime);
-        newData = { tapHistory, ticket1Time: ticket1Time?.toISOString() || null, ticket2Time: newInviteTime.toISOString() };
-    }
-    if (accessToken) {
-        await saveDataToDrive(accessToken, newData);
-    }
+  const handleTap = async () => { 
+    if (!isLoggedIn || isSyncing) return;
+    
+    const tapTime = new Date().getTime();
+    setTapHistory([...tapHistory, tapTime]);
+    await syncData(tapTime, 
+        ticket1Time?.getTime() || null, 
+        ticket2Time?.getTime() || null
+    );
   };
 
-  useEffect(() => {
-    if (user && accessToken) {
-      loadDataFromDrive(accessToken);
-    } else {
-      setTapHistory([]); // ログアウト時に履歴をリセット
-    }
-  }, [user, accessToken, loadDataFromDrive]);
+  const handleInvite = async (ticketNumber: 1 | 2) => { 
+    const now = new Date();
+    let t1 = ticket1Time?.getTime() || null;
+    let t2 = ticket2Time?.getTime() || null;
 
-  // --- ★ TimerDashboardに渡すために最新のタップ時間を算出 ★ ---
+    if (ticketNumber === 1) { 
+        setTicket1Time(now); 
+        t1 = now.getTime();
+    } else { 
+        setTicket2Time(now); 
+        t2 = now.getTime();
+    }
+    await syncData(undefined, t1, t2);
+  };
+
+  useEffect(() => { 
+    if (isLoggedIn && !isLoading) { 
+        loadData(); 
+    } else if (!isLoggedIn && !isLoading) { 
+        setTapHistory([]); 
+        setIsDataLoaded(true); 
+    } 
+  }, [isLoggedIn, isLoading, loadData]);
+
   const lastTap = tapHistory.length > 0 ? tapHistory[tapHistory.length - 1] : null;
-  const lastTapTime = lastTap ? new Date(lastTap.timestamp) : null;
-
+  const lastTapTime = lastTap ? new Date(lastTap) : null;
 
   if (isLoading) {
-    return <div className="text-center p-10">読み込み中...</div>;
+    return <div className="flex justify-center items-center h-screen text-muted-foreground font-bold">Loading...</div>;
   }
-  
+
   return (
-    <div className="bg-background min-h-screen">
-      {!user ? (
-          <div className="flex flex-col items-center justify-center h-screen p-8">
-            <div className="card text-center !bg-card border border-muted">
-                <h2 className="text-xl font-bold mb-4">ようこそ！</h2>
-                <p className="mb-6 text-muted-foreground">タイマー機能を利用するには、Googleアカウントでログインしてください。</p>
-                <button
-                    onClick={() => login()}
-                    className="btn btn-primary"
-                >
-                    <span>Googleでログイン</span>
-                </button>
+    <div className="bg-background h-screen flex flex-col">
+      <OneSignalInit />
+      <Header isLoggedIn={isLoggedIn} onMenuClick={() => setIsSidePanelOpen(true)} />
+      
+      <main className="pt-16 pb-16 min-[1000px]:pb-0 flex-1 flex flex-col">
+        {!isLoggedIn ? (
+          <LoginScreen />
+        ) : (
+          <>
+            {/* Mobile View */}
+            <div className="min-[1000px]:hidden flex-1">
+              {activeTab === 'timer' && (
+                  <TimerDashboard
+                    tapHistory={tapHistory}
+                    lastTapTime={lastTapTime}
+                    ticket1Time={ticket1Time}
+                    ticket2Time={ticket2Time}
+                    onTap={handleTap}
+                    onInvite={handleInvite}
+                    isSyncing={isSyncing}
+                    isDataLoaded={isDataLoaded}
+                  />
+              )}
+              {activeTab === 'history' && (
+                  <div className="p-4">
+                    <HistoryCalendar tapHistory={tapHistory} />
+                  </div>
+              )}
             </div>
-          </div>
-      ) : (
-        <>
-          <TimerDashboard 
-            lastTapTime={lastTapTime} // 最新のタップ時間だけを渡す
-            ticket1Time={ticket1Time}
-            ticket2Time={ticket2Time}
-            onTap={handleTap}
-            onInvite={handleInvite}
-            isSyncing={isSyncing}
-          />
-          
-          {/* ★ 履歴表示エリア（確認用）★ */}
-          <div className="p-4 sm:p-8 space-y-6 max-w-md mx-auto timer-dashboard-bg">
-              <div className="timer-card">
-                  <h2 className="timer-card-title">Tap History</h2>
-                  <ul className="history-text">
-                      {tapHistory.slice(-5).reverse().map(tap => (
-                          <li key={tap.timestamp} className="mb-1">
-                              {new Date(tap.timestamp).toLocaleString('ja-JP')}
-                              {tap.isOshi && <span className="ml-2 text-pink-500 font-bold">(推し)</span>}
-                          </li>
-                      ))}
-                      {tapHistory.length === 0 && <li>まだ記録がありません</li>}
-                  </ul>
+            {/* Desktop View */}
+            <div className="hidden min-[1000px]:flex flex-1 items-center justify-center p-6 h-[calc(100vh-64px)] overflow-hidden">
+              <div className="grid grid-cols-2 gap-6 w-full max-w-[160svh] mx-auto items-stretch">
+                <div className="flex flex-col justify-center">
+                  <TimerDashboard
+                    tapHistory={tapHistory}
+                    lastTapTime={lastTapTime}
+                    ticket1Time={ticket1Time}
+                    ticket2Time={ticket2Time}
+                    onTap={handleTap}
+                    onInvite={handleInvite}
+                    isSyncing={isSyncing}
+                    isDataLoaded={isDataLoaded}
+                  />
+                </div>
+                <div className="flex flex-col justify-center">
+                  <HistoryCalendar tapHistory={tapHistory} />
+                </div>
               </div>
-          </div>
-        </>
-      )}
+            </div>
+            
+            <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
+            
+            <SidePanel isOpen={isSidePanelOpen} onClose={() => setIsSidePanelOpen(false)} title="Settings">
+              <Settings />
+            </SidePanel>
+          </>
+        )}
+      </main>
     </div>
   );
 }
