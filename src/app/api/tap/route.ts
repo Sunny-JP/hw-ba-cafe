@@ -50,28 +50,49 @@ export async function POST(request: Request) {
 
 async function cleanupOldDevices(userId: string) {
   try {
-    const res = await fetch(`https://api.onesignal.com/apps/${ONESIGNAL_APP_ID}/users/by/external_id/${userId}`, {
-      headers: { "Authorization": `Basic ${ONESIGNAL_REST_KEY}` }
-    });
-    if (!res.ok) return;
-    const { subscriptions } = await res.json();
-    const allPushSubs = (subscriptions || [])
+    const res = await fetch(
+      `https://api.onesignal.com/apps/${ONESIGNAL_APP_ID}/users/by/external_id/${userId}`,
+      {
+        headers: { 
+          "Authorization": `Basic ${ONESIGNAL_REST_KEY}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+    if (!res.ok) {
+      console.error("OneSignal User Fetch Failed:", await res.text());
+      return;
+    }
+    const userData = await res.json();
+    const subscriptions = userData.subscriptions || [];
+    const allPushSubs = subscriptions
       .filter((s: any) => s.type === "Push")
-      .sort((a: any, b: any) => 
-        new Date(b.last_active || 0).getTime() - new Date(a.last_active || 0).getTime()
-      );
+      .sort((a: any, b: any) => {
+        const dateA = new Date(a.last_active || a.created_at || 0).getTime();
+        const dateB = new Date(b.last_active || b.created_at || 0).getTime();
+        return dateB - dateA;
+      });
     if (allPushSubs.length > 2) {
       const toDelete = allPushSubs.slice(2);
-      
-      await Promise.all(toDelete.map((sub: any) => 
-        fetch(`https://api.onesignal.com/apps/${ONESIGNAL_APP_ID}/subscriptions/${sub.id}`, {
-          method: "DELETE",
-          headers: { "Authorization": `Basic ${ONESIGNAL_REST_KEY}` }
-        })
-      ));
+      console.log(`Deleting ${toDelete.length} old subscriptions for user: ${userId}`);
+      for (const sub of toDelete) {
+        const delRes = await fetch(
+          `https://api.onesignal.com/apps/${ONESIGNAL_APP_ID}/subscriptions/${sub.id}`,
+          {
+            method: "DELETE",
+            headers: { 
+              "Authorization": `Basic ${ONESIGNAL_REST_KEY}`,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+        if (!delRes.ok) {
+          console.error(`Failed to delete subscription ${sub.id}:`, await delRes.text());
+        }
+      }
     }
   } catch (e) {
-    console.error("OneSignal Cleanup Error:", e);
+    console.error("OneSignal Cleanup Critical Error:", e);
   }
 }
 
