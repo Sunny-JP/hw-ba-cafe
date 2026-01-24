@@ -44,10 +44,6 @@ export const runtime = 'edge';
 ``` JSON
 "build": "next build --webpack"
 ```
-## PWA & 通知
-PWA: `public/`ディレクトリ内のアセットを参照し、オフライン動作に対応しています。
-
-OneSignal: プッシュ通知を実現するため、`OneSignalSDKWorker.js`を`public/`に配置しています。
 
 ## ディレクトリ構造
 - `src/app/api/`: Cloudflare Workers (Edge Runtime) 上で動作する API エンドポイント
