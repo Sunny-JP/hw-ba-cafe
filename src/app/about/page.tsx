@@ -19,6 +19,11 @@ export default function AboutPage() {
             <li>招待券のクールタイム管理</li>
             <li>タップ履歴のカレンダー表示</li>
           </ul>
+          <h2 className="text-xl font-bold mt-8 mb-4 text-foreground">対応プラットフォーム</h2>
+          <p>
+            PCおよびスマートフォンの最新ブラウザで動作します。<br />
+            PWAに対応しているため、ホーム画面に追加してアプリのように使うことができます。
+          </p>
         </div>
 
         <div className="mt-8 pt-4">
