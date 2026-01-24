@@ -71,16 +71,29 @@ const handleNotificationClick = async () => {
                 return;
             }
 
-            const isOptedIn = OneSignal.User.PushSubscription.optedIn;
+        const isOptedIn = OneSignal.User.PushSubscription.optedIn;
+        const currentSubscriptionId = OneSignal.User.PushSubscription.id; // 現在のデバイスID取得
 
-            if (isOptedIn) {
-                await OneSignal.User.PushSubscription.optOut();
-                alert("通知をOFFにしました。");
-            } else {
-                await OneSignal.Notifications.requestPermission();
-                await OneSignal.User.PushSubscription.optIn();
-                alert("通知をONにしました！");
-            }
+        if (isOptedIn) {
+            await OneSignal.User.PushSubscription.optOut();
+            alert("通知をOFFにしました。");
+        } else {
+            await OneSignal.Notifications.requestPermission();
+            await OneSignal.User.PushSubscription.optIn();
+            alert("通知をONにしました！");
+        }
+
+        // 通知ボタンを押したタイミングで API を叩き、整理を実行させる
+        await fetch('/api/tap', { // 実際のパスに合わせてください
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+            },
+            body: JSON.stringify({ 
+                onesignalId: currentSubscriptionId // これをトリガーにする
+            })
+        });
 
         } catch (e: any) {
             console.error("Notification Setup Error:", e);
