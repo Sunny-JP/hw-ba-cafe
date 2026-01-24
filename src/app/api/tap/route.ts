@@ -38,6 +38,7 @@ export async function POST(request: Request) {
     if (upsertError) throw new Error(upsertError.message);
 
     if (tapTime && shouldScheduleNotification(new Date(tapTime))) {
+      await cleanupOldDevices(user.id);
       await scheduleNotification(user.id, tapTime);
     }
     return NextResponse.json({ success: true, history: newHistory });
@@ -54,18 +55,23 @@ async function cleanupOldDevices(userId: string) {
     });
     if (!res.ok) return;
     const { subscriptions } = await res.json();
-    const oldSubs = (subscriptions || [])
+    const allPushSubs = (subscriptions || [])
       .filter((s: any) => s.type === "Push")
-      .sort((a: any, b: any) => new Date(b.last_active || 0).getTime() - new Date(a.last_active || 0).getTime())
-      .slice(2);
-    await Promise.all(oldSubs.map((sub: any) => 
-      fetch(`https://api.onesignal.com/apps/${ONESIGNAL_APP_ID}/subscriptions/${sub.id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Basic ${ONESIGNAL_REST_KEY}` }
-      })
-    ));
+      .sort((a: any, b: any) => 
+        new Date(b.last_active || 0).getTime() - new Date(a.last_active || 0).getTime()
+      );
+    if (allPushSubs.length > 2) {
+      const toDelete = allPushSubs.slice(2);
+      
+      await Promise.all(toDelete.map((sub: any) => 
+        fetch(`https://api.onesignal.com/apps/${ONESIGNAL_APP_ID}/subscriptions/${sub.id}`, {
+          method: "DELETE",
+          headers: { "Authorization": `Basic ${ONESIGNAL_REST_KEY}` }
+        })
+      ));
+    }
   } catch (e) {
-    console.error("Cleanup Error:", e);
+    console.error("OneSignal Cleanup Error:", e);
   }
 }
 
