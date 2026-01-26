@@ -30,7 +30,7 @@ const BellIcon = ({ className = 'h-5 w-5 mr-2' }: { className?: string }) => (
 const Settings = () => {
     const { isLoggedIn, logout, avatarUrl, displayName } = useAuth();
     const [isDeleting, setIsDeleting] = useState(false);
-    const [hue, setHue] = useState(120);
+    const [hue, setHue] = useState(200);
 
     useEffect(() => {
         const savedHue = localStorage.getItem('theme-hue');

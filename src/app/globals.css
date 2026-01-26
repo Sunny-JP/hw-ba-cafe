@@ -1,29 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fbfbfb;
+  --background: #f0f4f8;
   --foreground: #000000;
-  --card: #ffffff;
+  --card: rgba(255, 255, 255, 0.85);
   --card-foreground: #000000;
-  --primary: #000000;
+  --primary: hsl(var(--tap-h) var(--tap-s) 40%);
   --primary-foreground: #ffffff;
   --secondary: #000000;
   --secondary-foreground: #666666;
-  --tap: #000000;
-  --tap-foreground: #ffffff;
-  --muted: #cccccc;
+  --muted: #cbd5e0;
   --muted-foreground: #777777;
   --nav-foreground: #555555;
-  --tap-h: 120;
+  --tap-h: 200;
   --tap-s: 100%;
   --tap-bg-0: #ededed;
   --tap-bg-1: hsl(var(--tap-h) var(--tap-s) 95%);
   --tap-bg-2: hsl(var(--tap-h) var(--tap-s) 93%);
-  --tap-bg-3: hsl(var(--tap-h) var(--tap-s) 89%);
-  --tap-bg-4: hsl(var(--tap-h) var(--tap-s) 85%);
-  --tap-bg-5: hsl(var(--tap-h) var(--tap-s) 77%);
-  --tap-bg-6: hsl(var(--tap-h) var(--tap-s) 72%);
-  --tap-bg-7: hsl(var(--tap-h) var(--tap-s) 65%);
+  --tap-bg-3: hsl(var(--tap-h) var(--tap-s) 88%);
+  --tap-bg-4: hsl(var(--tap-h) var(--tap-s) 83%);
+  --tap-bg-5: hsl(var(--tap-h) var(--tap-s) 75%);
+  --tap-bg-6: hsl(var(--tap-h) var(--tap-s) 70%);
+  --tap-bg-7: hsl(var(--tap-h) var(--tap-s) 60%);
   --tap-bg-8: hsl(var(--tap-h) var(--tap-s) 50%);
   --setting: #333333;
   --setting-foreground: #000000;
@@ -34,26 +32,24 @@
   --foreground: #ffffff;
   --card: #151515;
   --card-foreground: #ffffff;
-  --primary: #fbfbfb;
+  --primary: hsl(var(--tap-h) var(--tap-s) 92%);
   --primary-foreground: #333333;
   --secondary: #ffffff;
   --secondary-foreground: #aaaaaa;
-  --tap: #ffffff;
-  --tap-foreground: #333333;
   --muted: #555555;
   --muted-foreground: #aaaaaa;
   --nav-foreground: #aaaaaa;
-  --tap-h: 120;
+  --tap-h: 200;
   --tap-s: 75%;
   --tap-bg-0: #151515;
-  --tap-bg-8: hsl(var(--tap-h) var(--tap-s) 45%);
-  --tap-bg-7: hsl(var(--tap-h) var(--tap-s) 38%);
-  --tap-bg-6: hsl(var(--tap-h) var(--tap-s) 29%);
-  --tap-bg-5: hsl(var(--tap-h) var(--tap-s) 22%);
-  --tap-bg-4: hsl(var(--tap-h) var(--tap-s) 16%);
-  --tap-bg-3: hsl(var(--tap-h) var(--tap-s) 12%);
-  --tap-bg-2: hsl(var(--tap-h) var(--tap-s) 8%);
-  --tap-bg-1: hsl(var(--tap-h) var(--tap-s) 5%);
+  --tap-bg-8: hsl(var(--tap-h) var(--tap-s) 50%);
+  --tap-bg-7: hsl(var(--tap-h) var(--tap-s) 42%);
+  --tap-bg-6: hsl(var(--tap-h) var(--tap-s) 33%);
+  --tap-bg-5: hsl(var(--tap-h) var(--tap-s) 26%);
+  --tap-bg-4: hsl(var(--tap-h) var(--tap-s) 18%);
+  --tap-bg-3: hsl(var(--tap-h) var(--tap-s) 14%);
+  --tap-bg-2: hsl(var(--tap-h) var(--tap-s) 10%);
+  --tap-bg-1: hsl(var(--tap-h) var(--tap-s) 7%);
 }
 
 html {
@@ -141,17 +137,29 @@ body {
   gap: 6cqw;
   padding: 6cqw;
 }
+.cal-container {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--card);
+  border: 1px solid var(--muted);
+  border-radius: 10px;
+  padding: 20px;
+  margin: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
 
 .timer-card {
   background-color: var(--card);
   color: var(--card-foreground);
   border: 1px solid var(--muted);
-  border-radius: 2cqw;
+  border-radius: 10px;
   padding: 4.5cqw;
   backdrop-filter: blur(6px);
   display: flex;
   flex-direction: column;
   justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 .timer-card-title {
   font-size: 4cqw;
@@ -165,7 +173,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.05em;
   line-height: 1.1;
-  margin-top: 0.5cqw;
+  margin-top: -1cqw;
   margin-bottom: 0.5cqw;
 }
 .countdown-text-s {
@@ -178,21 +186,24 @@ body {
 .slot-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1cqw;
-  margin-bottom: 4.5cqw;
-  padding: 0 6cqw;
+  gap: 1.5cqw;
+  margin-bottom: 4cqw;
+  padding: 0 5cqw;
 }
 .slot-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 1.5cqw;
   border-style: none;
   min-height: 8cqw;
   transition: all 0.2s;
   line-height: 1.2;
   font-weight: 700;
+  border-left: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  background: rgba(255, 255, 255, 0.5);
+  clip-path: polygon(0 0, 88% 0, 100% 28%, 100% 100%, 0 100%);
 }
 .slot-default {
   background-color: var(--card);
@@ -200,13 +211,41 @@ body {
 }
 .slot-current {
   background-color: var(--card);
-  color: var(--muted);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  text-decoration-thickness: 1.5px;
+  color: var(--primary);
+  position: relative;
+  text-decoration: none;
+}
+.slot-current::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 55%;
+  width: 5px;
+  height: 5px;
+  background-color: var(--primary);
+  border-radius: 50%;
+  box-shadow: 0 0 4px var(--primary);
+  animation: pulse-dot 2s infinite;
+  border-radius: 50%;
+}
+@keyframes pulse-dot {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.5);
+  }
 }
 .slot-tapped {
-  color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+  border-color: var(--primary);
 }
 .slot-text-main {
   font-size: 5cqw;
@@ -234,8 +273,8 @@ body {
 }
 
 .btn-timer-tap {
-  background-color: var(--tap);
-  color: var(--tap-foreground);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
   transition: all 0.2s ease-in-out;
 }
 .btn-timer-tap:hover {
@@ -253,10 +292,14 @@ body {
 .cal-days {
   font-size: 40cqw;
   font-weight: 700;
+  -webkit-text-stroke: 1px var(--primary-foreground);
+  paint-order: stroke;
 }
 .cal-tap {
   font-size: 50cqw;
   font-weight: 700;
+  -webkit-text-stroke: 2px var(--primary-foreground);
+  paint-order: stroke;
 }
 .cal-nav {
   flex: 1 1 0%;
@@ -275,34 +318,45 @@ body {
 }
 .cal-cell {
   container-type: inline-size;
+  border-left: 1px solid var(--muted);
+  border-bottom: 1px solid var(--muted);
 }
 
 .bg-tap-1 {
   background-color: var(--tap-bg-1);
+  border: none;
 }
 .bg-tap-2 {
   background-color: var(--tap-bg-2);
+  border: none;
 }
 .bg-tap-3 {
   background-color: var(--tap-bg-3);
+  border: none;
 }
 .bg-tap-4 {
   background-color: var(--tap-bg-4);
+  border: none;
 }
 .bg-tap-5 {
   background-color: var(--tap-bg-5);
+  border: none;
 }
 .bg-tap-6 {
   background-color: var(--tap-bg-6);
+  border: none;
 }
 .bg-tap-7 {
   background-color: var(--tap-bg-7);
+  border: none;
 }
 .bg-tap-8 {
   background-color: var(--tap-bg-8);
+  border: none;
 }
 .bg-tap-9 {
   background-color: var(--tap-bg-9);
+  border: none;
 }
 
 input[type="range"] {
