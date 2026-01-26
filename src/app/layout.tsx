@@ -1,10 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Sans_JP } from "next/font/google";
+import { Mandali, Kosugi_Maru } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 
-const NotoSansJPFont400 = Noto_Sans_JP({ weight: "400", subsets: ["latin"] });
-const NotoSansJPFont700 = Noto_Sans_JP({ weight: "700", subsets: ["latin"] });
+const mandali = Mandali({ 
+  weight: "400", 
+  subsets: ["latin"],
+  variable: "--font-mandali",
+});
+
+const kosugi = Kosugi_Maru({ 
+  weight: "400", 
+  subsets: ["latin"],
+  variable: "--font-kosugi",
+});
 
 export const metadata: Metadata = {
   title: "Café Timer",
@@ -14,9 +23,6 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: "Café Timer",
-  },
-  formatDetection: {
-    telephone: false,
   },
 };
 
@@ -38,7 +44,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className="h-full">
-      <body className={`${NotoSansJPFont700.className} ${NotoSansJPFont400.className} h-full`}>
+      <body className={`${mandali.variable} ${kosugi.variable} h-full`}>
         <Providers>
           {children}
         </Providers>

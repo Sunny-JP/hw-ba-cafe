@@ -32,7 +32,7 @@
   --foreground: #ffffff;
   --card: #151515;
   --card-foreground: #ffffff;
-  --primary: hsl(var(--tap-h) var(--tap-s) 92%);
+  --primary: hsl(var(--tap-h) var(--tap-s) 94%);
   --primary-foreground: #333333;
   --secondary: #ffffff;
   --secondary-foreground: #aaaaaa;
@@ -89,7 +89,7 @@ header {
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: sans-serif;
+  font-family: var(--font-mandali), var(--font-kosugi), "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
   font-weight: 700;
   padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
 }
@@ -115,7 +115,7 @@ body {
   padding-top: 14px;
   padding-bottom: 14px;
   text-align: center;
-  font-size: 1.2rem;
+  font-size: 3.5cqw;
   line-height: 1.25;
   font-weight: 700;
   color: var(--nav-foreground);
@@ -173,8 +173,8 @@ body {
   font-weight: 700;
   letter-spacing: 0.05em;
   line-height: 1.1;
-  margin-top: -1cqw;
-  margin-bottom: 0.5cqw;
+  margin-top: -1.6cqw;
+  margin-bottom: 1.6cqw;
 }
 .countdown-text-s {
   font-size: 8.5cqw;
@@ -282,11 +282,11 @@ body {
 }
 
 .cal-info {
-  font-size: 1.35rem;
+  font-size: 6cqw;
   font-weight: 700;
 }
 .cal-week {
-  font-size: 1.1rem;
+  font-size: 3.5cqw;
   font-weight: 700;
 }
 .cal-days {
@@ -306,7 +306,7 @@ body {
   padding-top: 14px;
   padding-bottom: 14px;
   text-align: center;
-  font-size: 1.2rem;
+  font-size: 4cqw;
   line-height: 1.25;
   font-weight: 700;
   color: var(--secondary-foreground);
