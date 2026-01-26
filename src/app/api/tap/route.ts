@@ -23,10 +23,6 @@ export async function POST(request: Request) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    if (onesignalId) {
-      await cleanupDevices(user.id, onesignalId);
-    }
-
     const { data: profile } = await supabase.from('profiles').select('tap_history').eq('id', user.id).single();
     const newHistory = tapTime ? [...(profile?.tap_history || []), tapTime] : (profile?.tap_history || []);
 
@@ -49,41 +45,6 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("[Error] Critical API Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-
-async function cleanupDevices(userId: string, currentId: string) {
-  try {
-    const res = await fetch(`https://onesignal.com/api/v1/apps/${APP_ID}/users/by/external_id/${userId}`, {
-      headers: { "Authorization": `Basic ${API_KEY}` }
-    });
-    if (!res.ok) return;
-
-    const data = await res.json();
-    const subs = data.subscriptions || (data.identity && data.identity.subscriptions) || [];
-    
-    const others = subs.filter((s: any) => 
-      (String(s.type).includes("Push") || String(s.type) === "1") && s.id !== currentId
-    );
-
-    others.sort((a: any, b: any) => {
-      const timeA = Number(a.last_active || a.created_at || 0);
-      const timeB = Number(b.last_active || b.created_at || 0);
-      return timeB - timeA;
-    });
-
-    const toDelete = others.slice(1); 
-
-    if (toDelete.length > 0) {
-      for (const sub of toDelete) {
-        await fetch(`https://onesignal.com/api/v1/apps/${APP_ID}/subscriptions/${sub.id}`, {
-          method: "DELETE",
-          headers: { "Authorization": `Basic ${API_KEY}` }
-        });
-      }
-    }
-  } catch (e) {
-    console.error("[Cleanup] Error:", e);
   }
 }
 

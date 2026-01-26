@@ -79,7 +79,6 @@ const Settings = () => {
                 alert("通知をONにしました！");
             }
 
-            await new Promise(r => setTimeout(r, 1500));
             const currentSubscriptionId = OneSignal.User.PushSubscription.id;
 
             await fetch('/api/tap', {
