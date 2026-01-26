@@ -5,7 +5,7 @@
   --foreground: #000000;
   --card: rgba(255, 255, 255, 0.85);
   --card-foreground: #000000;
-  --primary: hsl(var(--tap-h) var(--tap-s) 40%);
+  --primary: hsl(var(--tap-h) var(--tap-s) 42%);
   --primary-foreground: #ffffff;
   --secondary: #000000;
   --secondary-foreground: #666666;
@@ -115,7 +115,7 @@ body {
   padding-top: 14px;
   padding-bottom: 14px;
   text-align: center;
-  font-size: 3.5cqw;
+  font-size: 4.5cqw;
   line-height: 1.25;
   font-weight: 700;
   color: var(--nav-foreground);
@@ -139,27 +139,18 @@ body {
 }
 .cal-container {
   container-type: inline-size;
-  display: flex;
-  flex-direction: column;
-  background-color: var(--card);
-  border: 1px solid var(--muted);
-  border-radius: 10px;
-  padding: 20px;
-  margin: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  padding: 1cqw;
 }
 
 .timer-card {
-  background-color: var(--card);
   color: var(--card-foreground);
-  border: 1px solid var(--muted);
   border-radius: 10px;
-  padding: 4.5cqw;
+  padding: 1cqw;
+  margin-bottom: 2cqw;
   backdrop-filter: blur(6px);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 .timer-card-title {
   font-size: 4cqw;
