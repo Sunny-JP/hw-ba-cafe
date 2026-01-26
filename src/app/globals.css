@@ -202,32 +202,24 @@ body {
   color: var(--primary);
   position: relative;
   text-decoration: none;
+  overflow: hidden;
 }
 .slot-current::before {
   content: "";
   position: absolute;
-  left: 5px;
-  top: 55%;
-  width: 5px;
-  height: 5px;
-  background-color: var(--primary);
-  border-radius: 50%;
-  box-shadow: 0 0 4px var(--primary);
-  animation: pulse-dot 2s infinite;
-  border-radius: 50%;
+  bottom: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  animation: flow-line 3s infinite linear;
 }
-@keyframes pulse-dot {
+@keyframes flow-line {
   0% {
-    opacity: 0;
-    transform: translateY(-50%) scale(0.5);
-  }
-  50% {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
+    left: -150%;
   }
   100% {
-    opacity: 0;
-    transform: translateY(-50%) scale(0.5);
+    left: 150%;
   }
 }
 .slot-tapped {
