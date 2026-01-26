@@ -189,11 +189,8 @@ body {
   border-style: none;
   min-height: 8cqw;
   transition: all 0.2s;
-  line-height: 1.2;
+  line-height: 1.1;
   font-weight: 700;
-  border-left: 1.5px solid var(--muted);
-  border-bottom: 1.5px solid var(--muted);
-  background: rgba(255, 255, 255, 0.5);
   clip-path: polygon(0 0, 88% 0, 100% 28%, 100% 100%, 0 100%);
 }
 .slot-default {
@@ -309,8 +306,7 @@ body {
 }
 .cal-cell {
   container-type: inline-size;
-  border-left: 1px solid var(--muted);
-  border-bottom: 1px solid var(--muted);
+  background-color: var(--card);
 }
 
 .bg-tap-1 {
