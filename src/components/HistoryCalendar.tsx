@@ -56,7 +56,7 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
     const bgClass = getTapBgClass(taps.length);
     
     calendarDays.push(
-      <div key={day} className={`relative p-2 aspect-square rounded-lg ${bgClass} cal-cell`}>
+      <div key={day} className={`relative p-2 aspect-square ${bgClass} cal-cell`}>
         <div className="absolute top-1 left-2 cal-days">{day}</div>
         <div className="absolute bottom-1 right-2 cal-tap">
           {taps.length > 0 ? taps.length : ''}
@@ -72,7 +72,7 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
   };
 
   return (
-    <div className="p-4">
+    <div className="cal-container">
       <div className="flex justify-between items-center mb-4">
         <button onClick={() => changeMonth(-1)} className="cal-nav">Prev</button>
         <div className="cal-info">{year}. {month + 1}</div>
