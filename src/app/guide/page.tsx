@@ -35,15 +35,23 @@ export default function GuidePage() {
             </h2>
             <p className="mb-4">
               メニュー内の「通知設定」から、生徒さんと触れ合える時刻をプッシュ通知でお知らせします。
-              通知設定は1アカウントにつき2端末まで有効です。3端末以上で設定した場合、通知設定を行ったのが最も古い端末から通知設定が解除されます。<br />
-              4:00/16:00 JSTについては、時刻が固定されている&負荷軽減のため、通知を行いません。
+              4:00/16:00 JSTについては、時刻が固定されている&負荷軽減のため、通知を行いません。<br />
             </p>
+            <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4 text-sm mb-4">
+              <p className="font-bold mb-2">ℹ️ お願い</p>
+              <p>
+                通知登録されている端末数が増加すると運営者のお財布にクリティカルが発生します。
+              </p>
+              <p className="mt-1">
+                通知登録は1ユーザーあたり2端末を目安とし、通知が不要な端末は都度登録解除していただくようご協力をお願いいたします。
+              </p>
+            </div>
             <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-sm">
               <p className="font-bold mb-2">⚠️ 通知設定がうまくいかない場合</p>
               <p>
                 <strong>AdGuard</strong> や <strong>uBlock Origin</strong> などの広告ブロック（コンテンツブロッカー）機能を使用している場合、通知システムが「トラッキング」と誤認され、許可ダイアログが表示されないことがあります。
               </p>
-              <p className="mt-2">
+              <p className="mt-1">
                 通知設定を行う際は、<strong>このサイト（ドメイン）を許可リストに追加する</strong>か、<strong>一時的に機能をOFF</strong>にしてからページを再読み込み・通知設定を行ってください。
               </p>
             </div>
