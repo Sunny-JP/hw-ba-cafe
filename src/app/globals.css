@@ -291,10 +291,18 @@ body {
   background-color: transparent;
   transition: all 0.2s ease-in-out;
 }
-.cal-nav:hover {
+.cal-save-nav {
+  font-size: 2.5cqw;
+  color: var(--secondary-foreground);
+  background-color: transparent;
+  transition: all 0.2s ease-in-out;
+}
+.cal-nav:hover,
+.cal-save-nav:hover {
   color: var(--primary);
 }
-.dark .cal-nav:hover {
+.dark .cal-nav:hover,
+.dark .cal-save-nav:hover {
   color: #f5f0f7;
 }
 .cal-cell {
