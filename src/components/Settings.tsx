@@ -29,23 +29,6 @@ const BellIcon = ({ className = 'h-5 w-5 mr-2' }: { className?: string }) => (
 const Settings = () => {
     const { isLoggedIn, logout, avatarUrl, displayName } = useAuth();
     const [isDeleting, setIsDeleting] = useState(false);
-    const [hue, setHue] = useState(200);
-
-    useEffect(() => {
-        const savedHue = localStorage.getItem('theme-hue');
-        if (savedHue) {
-            const h = parseInt(savedHue);
-            setHue(h);
-            document.documentElement.style.setProperty('--tap-h', h.toString());
-        }
-    }, []);
-
-    const handleHueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = parseInt(e.target.value);
-        setHue(val);
-        document.documentElement.style.setProperty('--tap-h', val.toString());
-        localStorage.setItem('theme-hue', val.toString());
-    };
 
     const menuItems = [
         { label: 'About', path: '/about' },
@@ -136,18 +119,6 @@ const Settings = () => {
                         </li>
                     ))}
                 </ul>
-
-                <div className="p-2 rounded-xl">
-                    <div className="flex justify-between items-center mb-2">
-                        <label className="text-xs font-mono opacity-70">Theme Color</label>
-                        <span className="text-xs font-mono opacity-60">Hue: {hue}</span>
-                    </div>
-                    <input 
-                        type="range" min="0" max="360" value={hue} onChange={handleHueChange}
-                        className="w-full h-2 rounded-lg appearance-none cursor-pointer"
-                        style={{ background: `linear-gradient(to right, hsl(0, 80%, 50%), hsl(60, 80%, 50%), hsl(120, 80%, 50%), hsl(180, 80%, 50%), hsl(240, 80%, 50%), hsl(300, 80%, 50%), hsl(360, 80%, 50%))` }}
-                    />
-                </div>
 
                 <div className="mt-8 border-t pt-4">
                     {isLoggedIn && (

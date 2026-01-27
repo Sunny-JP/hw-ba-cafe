@@ -1,55 +1,53 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f0f4f8;
-  --foreground: #000000;
-  --card: rgba(255, 255, 255, 0.85);
-  --card-foreground: #000000;
-  --primary: hsl(var(--tap-h) var(--tap-s) 42%);
+  --background: #f0f8ff; /* わずかに青みのある白 */
+  --foreground: #1a2a3a;
+  --card: #ffffff;
+  --card-foreground: #1a2a3a;
+  --primary: hsl(var(--tap-h) var(--tap-s) 55%);
   --primary-foreground: #ffffff;
-  --secondary: #000000;
-  --secondary-foreground: #666666;
-  --muted: #cbd5e0;
-  --muted-foreground: #777777;
-  --nav-foreground: #555555;
+  --secondary: #2c3e50;
+  --secondary-foreground: #5a7d9a;
+  --muted: #d0e1f0;
+  --muted-foreground: #8ba8c2;
+  --nav-foreground: #607d8b;
   --tap-h: 200;
   --tap-s: 100%;
-  --tap-bg-0: #ededed;
+  --tap-bg-0: #ffffff;
   --tap-bg-1: hsl(var(--tap-h) var(--tap-s) 95%);
   --tap-bg-2: hsl(var(--tap-h) var(--tap-s) 93%);
-  --tap-bg-3: hsl(var(--tap-h) var(--tap-s) 88%);
-  --tap-bg-4: hsl(var(--tap-h) var(--tap-s) 83%);
-  --tap-bg-5: hsl(var(--tap-h) var(--tap-s) 75%);
-  --tap-bg-6: hsl(var(--tap-h) var(--tap-s) 70%);
-  --tap-bg-7: hsl(var(--tap-h) var(--tap-s) 60%);
-  --tap-bg-8: hsl(var(--tap-h) var(--tap-s) 50%);
-  --setting: #333333;
-  --setting-foreground: #000000;
+  --tap-bg-3: hsl(var(--tap-h) var(--tap-s) 89%);
+  --tap-bg-4: hsl(var(--tap-h) var(--tap-s) 86%);
+  --tap-bg-5: hsl(var(--tap-h) var(--tap-s) 79%);
+  --tap-bg-6: hsl(var(--tap-h) var(--tap-s) 74%);
+  --tap-bg-7: hsl(var(--tap-h) var(--tap-s) 66%);
+  --tap-bg-8: hsl(var(--tap-h) var(--tap-s) 59%);
 }
 
 .dark {
   --background: #000000;
-  --foreground: #ffffff;
-  --card: #151515;
-  --card-foreground: #ffffff;
-  --primary: hsl(var(--tap-h) var(--tap-s) 94%);
-  --primary-foreground: #333333;
-  --secondary: #ffffff;
-  --secondary-foreground: #aaaaaa;
-  --muted: #555555;
-  --muted-foreground: #aaaaaa;
-  --nav-foreground: #aaaaaa;
-  --tap-h: 200;
-  --tap-s: 75%;
-  --tap-bg-0: #151515;
-  --tap-bg-8: hsl(var(--tap-h) var(--tap-s) 50%);
-  --tap-bg-7: hsl(var(--tap-h) var(--tap-s) 42%);
-  --tap-bg-6: hsl(var(--tap-h) var(--tap-s) 33%);
-  --tap-bg-5: hsl(var(--tap-h) var(--tap-s) 26%);
-  --tap-bg-4: hsl(var(--tap-h) var(--tap-s) 18%);
-  --tap-bg-3: hsl(var(--tap-h) var(--tap-s) 14%);
-  --tap-bg-2: hsl(var(--tap-h) var(--tap-s) 10%);
-  --tap-bg-1: hsl(var(--tap-h) var(--tap-s) 7%);
+  --foreground: #f5f0f7;
+  --card: #151b2b;
+  --card-foreground: #f5f0f7;
+  --primary: hsl(var(--tap-h) var(--tap-s) 75%);
+  --primary-foreground: #1c1425;
+  --secondary: #d7d5e8;
+  --secondary-foreground: #a0abc2;
+  --muted: #4b5068;
+  --muted-foreground: #7d8dad;
+  --nav-foreground: #96a4bd;
+  --tap-h: 225;
+  --tap-s: 40%;
+  --tap-bg-0: #0f0e1a;
+  --tap-bg-8: hsl(var(--tap-h) var(--tap-s) 56%);
+  --tap-bg-7: hsl(var(--tap-h) var(--tap-s) 50%);
+  --tap-bg-6: hsl(var(--tap-h) var(--tap-s) 42%);
+  --tap-bg-5: hsl(var(--tap-h) var(--tap-s) 35%);
+  --tap-bg-4: hsl(var(--tap-h) var(--tap-s) 28%);
+  --tap-bg-3: hsl(var(--tap-h) var(--tap-s) 23%);
+  --tap-bg-2: hsl(var(--tap-h) var(--tap-s) 16%);
+  --tap-bg-1: hsl(var(--tap-h) var(--tap-s) 12%);
 }
 
 html {
@@ -125,7 +123,11 @@ body {
 .btn-nav:hover {
   color: var(--primary);
 }
-.btn-nav.active {
+.dark .btn-nav:hover {
+  color: #f5f0f7;
+}
+.btn-nav.active,
+.btn-nav:hover.active {
   background-color: var(--primary);
   color: var(--primary-foreground);
 }
@@ -270,16 +272,12 @@ body {
   font-weight: 700;
 }
 .cal-days {
-  font-size: 40cqw;
-  font-weight: 700;
-  -webkit-text-stroke: 1px var(--primary-foreground);
-  paint-order: stroke;
+  font-size: 38cqw;
+  font-weight: 400;
 }
 .cal-tap {
-  font-size: 50cqw;
+  font-size: 52cqw;
   font-weight: 700;
-  -webkit-text-stroke: 2px var(--primary-foreground);
-  paint-order: stroke;
 }
 .cal-nav {
   flex: 1 1 0%;
@@ -296,46 +294,39 @@ body {
 .cal-nav:hover {
   color: var(--primary);
 }
+.dark .cal-nav:hover {
+  color: #f5f0f7;
+}
 .cal-cell {
   container-type: inline-size;
-  background-color: var(--card);
+  border: none;
 }
-
+.bg-tap-0 {
+  background-color: var(--tap-bg-0);
+}
 .bg-tap-1 {
   background-color: var(--tap-bg-1);
-  border: none;
 }
 .bg-tap-2 {
   background-color: var(--tap-bg-2);
-  border: none;
 }
 .bg-tap-3 {
   background-color: var(--tap-bg-3);
-  border: none;
 }
 .bg-tap-4 {
   background-color: var(--tap-bg-4);
-  border: none;
 }
 .bg-tap-5 {
   background-color: var(--tap-bg-5);
-  border: none;
 }
 .bg-tap-6 {
   background-color: var(--tap-bg-6);
-  border: none;
 }
 .bg-tap-7 {
   background-color: var(--tap-bg-7);
-  border: none;
 }
 .bg-tap-8 {
   background-color: var(--tap-bg-8);
-  border: none;
-}
-.bg-tap-9 {
-  background-color: var(--tap-bg-9);
-  border: none;
 }
 
 input[type="range"] {
