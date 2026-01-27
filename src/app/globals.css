@@ -30,14 +30,14 @@
   --foreground: #f5f0f7;
   --card: #151b2b;
   --card-foreground: #f5f0f7;
-  --primary: hsl(var(--tap-h) var(--tap-s) 75%);
-  --primary-foreground: #1c1425;
+  --primary: hsl(var(--tap-h) var(--tap-s) 50%);
+  --primary-foreground: #f5f0f7;
   --secondary: #d7d5e8;
   --secondary-foreground: #a0abc2;
   --muted: #4b5068;
   --muted-foreground: #7d8dad;
   --nav-foreground: #96a4bd;
-  --tap-h: 225;
+  --tap-h: 235;
   --tap-s: 40%;
   --tap-bg-0: #0f0e1a;
   --tap-bg-8: hsl(var(--tap-h) var(--tap-s) 56%);
@@ -308,6 +308,10 @@ body {
 .cal-cell {
   container-type: inline-size;
   border: none;
+  text-shadow: 0 0 3px #ffffff;
+}
+.dark .cal-cell {
+  text-shadow: none;
 }
 .bg-tap-0 {
   background-color: var(--tap-bg-0);
