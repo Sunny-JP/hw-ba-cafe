@@ -18,7 +18,7 @@ export default function OneSignalInit() {
           serviceWorkerPath: 'OneSignalSDKWorker.js', 
           
           welcomeNotification: {
-            title: "Café Timer",
+            title: "Cafe Timer",
             message: "先生、通知設定が完了しました！これでお仕事の時間をお知らせします。",
           },
         });

@@ -1,13 +1,12 @@
-# Cafe Timer (hw-ba-cafe)
-
-Next.js 16 で構築された、Cloudflare Pages 上で動作するカフェタイマー PWA です。
+# Cafe Timer
 
 ## 技術スタック
 
-* **Framework:** Next.js 16 (App Router)
+* **Framework:** Next.js (App Router)
 * **Deployment:** Cloudflare Pages
 * **Build Tool:** @cloudflare/next-on-pages
 * **PWA:** @ducanh2912/next-pwa
+* **Database:** Supabase
 * **Push Notification:** OneSignal
 * **Styling:** Tailwind CSS
 

@@ -3,8 +3,8 @@ import { MetadataRoute } from 'next';
 export const dynamic = 'force-static';
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Café Timer',
-    short_name: 'Café Timer',
+    name: 'Cafe Timer',
+    short_name: 'Cafe Timer',
     description: 'A timer app for BA cafe',
     start_url: '/',
     display: 'standalone',
