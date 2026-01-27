@@ -3,7 +3,7 @@ import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { toPng } from 'html-to-image';
 
 const JST_TZ = 'Asia/Tokyo';
-const SITE_NAME = "My Tap History  by  Café Timer";
+const SITE_NAME = "My Tap History  by  Cafe Timer";
 const SITE_URL = "https://cafetimer.rabbit1.cc";
 
 interface HistoryCalendarProps {

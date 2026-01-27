@@ -8,7 +8,7 @@ export default function AboutPage() {
         
         <div className="space-y-4 font-normal">
           <p>
-            「Café Timer」は、ゲーム『ブルーアーカイブ』のカフェ機能を支援する非公式ファンメイドツールです。<br />
+            「Cafe Timer」は、ゲーム『ブルーアーカイブ』のカフェ機能を支援する非公式ファンメイドツールです。<br />
             生徒さんのカフェ訪問タイミングを通知でお知らせし、先生方の業務をサポートします。
           </p>
           

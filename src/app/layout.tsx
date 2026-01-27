@@ -16,13 +16,13 @@ const kosugi = Kosugi_Maru({
 });
 
 export const metadata: Metadata = {
-  title: "Café Timer",
+  title: "Cafe Timer",
   description: "カフェタイマー",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Café Timer",
+    title: "Cafe Timer",
   },
 };
 
