@@ -1,28 +1,30 @@
 "use client";
 import { useEffect } from 'react';
 import OneSignal from 'react-onesignal';
-
-let isInitialized = false;
+import { supabase } from "@/hooks/useAuth";
 
 export default function OneSignalInit() {
   useEffect(() => {
-    if (isInitialized) return;
-
-    isInitialized = true;
-
     const initOneSignal = async () => {
       try {
         await OneSignal.init({
           appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID!,
           allowLocalhostAsSecureOrigin: true, 
+          // サービスワーカーのパスをルートに固定して認識を安定させる
           serviceWorkerPath: 'OneSignalSDKWorker.js', 
-          
           welcomeNotification: {
             title: "Cafe Timer",
-            message: "先生、通知設定が完了しました！これでお仕事の時間をお知らせします。",
+            message: "先生、通知設定が完了しました！",
           },
         });
-        console.log("OneSignal Initialized");
+
+        // 初期化直後にログイン状態を確認
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // OneSignalのExternal IDとしてSupabaseのUser IDをセット
+          // これによりDBのIDと通知先が強固に紐付く
+          await OneSignal.login(user.id);
+        }
       } catch (error) {
         console.error("OneSignal init error", error);
       }
