@@ -1,48 +1,49 @@
-import { addHours, isAfter } from 'date-fns';
+import { addHours, isAfter, startOfHour, setHours, addDays } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
 const JST_TZ = 'Asia/Tokyo';
 
-export const getNextBoundary = (now: Date): Date => {
-  const jstNow = toZonedTime(now, JST_TZ);
-  const h = jstNow.getHours();
+// 境界線（4時/16時）を求める
+export const getNextBoundary = (date: Date): Date => {
+  const jst = toZonedTime(date, JST_TZ);
+  const hour = jst.getHours();
 
-  let boundaryJst = new Date(jstNow);
-  boundaryJst.setMinutes(0, 0, 0);
-
-  if (h < 4) {
-    boundaryJst.setHours(4);
-  } else if (h < 16) {
-    boundaryJst.setHours(16);
+  let boundary = startOfHour(jst);
+  if (hour < 4) {
+    boundary = setHours(boundary, 4);
+  } else if (hour < 16) {
+    boundary = setHours(boundary, 16);
   } else {
-    boundaryJst.setDate(boundaryJst.getDate() + 1);
-    boundaryJst.setHours(4);
+    boundary = setHours(addDays(boundary, 1), 4);
   }
-
-  return fromZonedTime(boundaryJst, JST_TZ);
+  return fromZonedTime(boundary, JST_TZ);
 };
 
+// UI表示用の終了時刻計算 (3時間後 or 境界線の早い方)
 export const getSessionEndTime = (lastTapTime: Date | null): Date | null => {
   if (!lastTapTime) return null;
 
-  const standardEnd = addHours(lastTapTime, 3);
-  const boundary = getNextBoundary(lastTapTime);
+  const baseTime = new Date(lastTapTime);
+  baseTime.setMilliseconds(0);
 
-  if (isAfter(standardEnd, boundary)) {
-    return boundary;
-  }
-  return standardEnd;
+  const standardEnd = addHours(baseTime, 3);
+  const boundary = getNextBoundary(baseTime);
+
+  return isAfter(standardEnd, boundary) ? boundary : standardEnd;
 };
 
+// 通知を予約すべきか判定
 export const shouldScheduleNotification = (tapTime: Date): boolean => {
-  const jstNow = toZonedTime(tapTime, JST_TZ);
-  const h = jstNow.getHours();
+  const jst = toZonedTime(tapTime, JST_TZ);
+  const h = jst.getHours();
+  
+  if ((h >= 1 && h < 4) || (h >= 13 && h < 16)) return false;
 
-  if ((h >= 1 && h < 4) || (h >= 13 && h < 16)) {
-    return false;
-  }
+  const endTime = getSessionEndTime(tapTime);
+  if (!endTime) return false;
 
   const standardEnd = addHours(tapTime, 3);
-  const boundary = getNextBoundary(tapTime);
-  return !isAfter(standardEnd, boundary);
+  standardEnd.setMilliseconds(0);
+
+  return endTime.getTime() === standardEnd.getTime();
 };
