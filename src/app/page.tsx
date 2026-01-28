@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth, supabase } from "@/hooks/useAuth";
 import OneSignal from 'react-onesignal';
 import OneSignalInit from "@/components/OneSignalInit";
-
 import Header from "@/components/Header";
 import TimerDashboard from "@/components/TimerDashboard";
 import BottomNavBar from "@/components/BottomNavBar";
@@ -57,12 +56,10 @@ function LoginScreen() {
 
 export default function Home() {
   const { isLoggedIn, isLoading } = useAuth();
-  
   const [activeTab, setActiveTab] = useState<Tab>('timer');
   const [tapHistory, setTapHistory] = useState<number[]>([]);
   const [ticket1Time, setTicket1Time] = useState<Date | null>(null);
   const [ticket2Time, setTicket2Time] = useState<Date | null>(null);
-  
   const [isSyncing, setIsSyncing] = useState(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
@@ -72,28 +69,34 @@ export default function Home() {
     if (!user) return;
     
     try {
-      if (OneSignal.User) {
+      if (typeof window !== 'undefined' && OneSignal.Notifications) {
         await OneSignal.login(user.id);
-      } else {
-        console.log("OneSignal not ready yet");
       }
     } catch (e) {
-      console.error("OneSignal login error", e);
+      console.warn("OneSignal login skipped:", e);
     }
-
+  
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
+
+      if (error) throw error;
       
       if (data) {
-        if (data.tap_history) setTapHistory(data.tap_history as number[]);
+        if (data.tap_history && Array.isArray(data.tap_history)) {
+          const numericHistory = data.tap_history
+            .map((t: string) => new Date(t).getTime())
+            .filter((t: number) => !isNaN(t));
+
+          setTapHistory(numericHistory);
+          console.log("Success: Loaded tap history", numericHistory.length, "items");
+        }
+
         if (data.ticket1_time) setTicket1Time(new Date(data.ticket1_time));
         if (data.ticket2_time) setTicket2Time(new Date(data.ticket2_time));
-      } else {
-        console.log("No profile found, waiting for trigger...");
       }
     } catch (e) {
       console.error("Load error", e);
@@ -102,17 +105,13 @@ export default function Home() {
     }
   }, []);
 
-  const syncData = async (newTapTime?: number, t1?: number | null, t2?: number | null) => {
+  const syncData = async (tapISO?: string, t1ISO?: string | null, t2ISO?: string | null) => {
     if (!isLoggedIn) return;
     setIsSyncing(true);
     
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const onesignalId = (OneSignal as any).User?.PushSubscription?.id;
-
-      if (!onesignalId) {
-        console.log("Notification ID not ready yet.");
-      }
+      const isPushEnabled = OneSignal.Notifications.permission;
 
       await fetch('/api/tap', {
         method: 'POST',
@@ -121,13 +120,12 @@ export default function Home() {
           'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify({
-          tapTime: newTapTime,
-          onesignalId: onesignalId,
-          ticket1Time: t1,
-          ticket2Time: t2
+          tapTime: tapISO,
+          isPushEnabled: isPushEnabled,
+          ticket1Time: t1ISO,
+          ticket2Time: t2ISO
         })
       });
-      console.log("Sync success");
     } catch (error) {
       console.error("Sync failed", error);
     } finally {
@@ -138,56 +136,50 @@ export default function Home() {
   const handleTap = async () => { 
     if (!isLoggedIn || isSyncing) return;
     
-    const tapTime = new Date().getTime();
-    setTapHistory([...tapHistory, tapTime]);
-    await syncData(tapTime, 
-        ticket1Time?.getTime() || null, 
-        ticket2Time?.getTime() || null
+    const now = new Date();
+    now.setMilliseconds(0);
+    const newTapMs = now.getTime();
+    
+    setTapHistory(prev => [...prev, newTapMs]);
+    
+    await syncData(
+      now.toISOString(), 
+      ticket1Time?.toISOString() || null, 
+      ticket2Time?.toISOString() || null
     );
   };
 
   const handleInvite = async (ticketNumber: 1 | 2) => { 
     const now = new Date();
-    let t1 = ticket1Time?.getTime() || null;
-    let t2 = ticket2Time?.getTime() || null;
+    now.setMilliseconds(0);
+    
+    let t1ISO = ticket1Time?.toISOString() || null;
+    let t2ISO = ticket2Time?.toISOString() || null;
 
     if (ticketNumber === 1) { 
-        setTicket1Time(now); 
-        t1 = now.getTime();
+        setTicket1Time(now);
+        t1ISO = now.toISOString();
     } else { 
-        setTicket2Time(now); 
-        t2 = now.getTime();
+        setTicket2Time(now);
+        t2ISO = now.toISOString();
     }
-    await syncData(undefined, t1, t2);
+    await syncData(undefined, t1ISO, t2ISO);
   };
 
   useEffect(() => { 
-    if (isLoggedIn && !isLoading) { 
-        loadData(); 
-    } else if (!isLoggedIn && !isLoading) { 
-        setTapHistory([]); 
-        setIsDataLoaded(true); 
-    } 
+    if (isLoggedIn && !isLoading) loadData(); 
   }, [isLoggedIn, isLoading, loadData]);
 
-  const lastTap = tapHistory.length > 0 ? tapHistory[tapHistory.length - 1] : null;
-  const lastTapTime = lastTap ? new Date(lastTap) : null;
+  const lastTapTime = tapHistory.length > 0 ? new Date(tapHistory[tapHistory.length - 1]) : null;
 
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-screen text-muted-foreground font-bold">Loading...</div>;
-  }
-
+  if (isLoading) return <div className="flex justify-center items-center h-screen font-bold">Loading...</div>;
   return (
     <div className="bg-background h-screen flex flex-col">
       <OneSignalInit />
       <Header isLoggedIn={isLoggedIn} onMenuClick={() => setIsSidePanelOpen(true)} />
-      
       <main className="pt-16 pb-16 min-[1000px]:pb-0 flex-1 flex flex-col">
-        {!isLoggedIn ? (
-          <LoginScreen />
-        ) : (
+        {!isLoggedIn ? <LoginScreen /> : (
           <>
-            {/* Mobile View */}
             <div className="min-[1000px]:hidden flex-1">
               {activeTab === 'timer' && (
                   <TimerDashboard

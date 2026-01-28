@@ -95,9 +95,12 @@ export default function TimerDashboard({
         mainLabel = timeLocal;
         subLabel = `${timeJst} JST`;
       }
-      const tapEntry = (tapHistory || []).find((t) => {
+      const tapEntryStr = (tapHistory || []).find((tStr) => {
+        const t = new Date(tStr).getTime();
         return t >= start.getTime() && t < end.getTime();
       });
+
+      const tapEntry = tapEntryStr ? new Date(tapEntryStr).getTime() : null;
       const tapTimeLocal = tapEntry ? formatInTimeZone(tapEntry, userTimeZone, 'HH:mm') : null;
       const tapTimeJst = tapEntry ? formatInTimeZone(tapEntry, JST_TZ, 'HH:mm') : null;
       return {

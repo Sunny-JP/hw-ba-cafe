@@ -40,49 +40,26 @@ const Settings = () => {
   ];
 
   const handleNotificationClick = async () => {
-    if (isPushLoading) return;
     setIsPushLoading(true);
-
-      try {
-        if (!OneSignal.User) {
-          throw new Error("通知システムが未ロードです。広告ブロックを確認してください。");
-        }
-
-        const isAllowed = await OneSignal.Notifications.requestPermission();
-        if (!isAllowed) {
-          alert("通知がブロックされています。ブラウザの設定で許可してください。");
-          return;
-        }
-
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) throw new Error("セッションが見つかりません。");
-
-        // External IDの紐付け
-        await OneSignal.login(session.user.id);
-
-        const isOptedIn = OneSignal.User.PushSubscription.optedIn;
-        if (isOptedIn) {
-          await OneSignal.User.PushSubscription.optOut();
-          alert("通知をOFFにしました。");
-        } else {
-          await OneSignal.User.PushSubscription.optIn();
-          alert("通知をONにしました！");
-        }
-
-        const currentSubscriptionId = OneSignal.User.PushSubscription.id;
-
+    try {
+      await OneSignal.Notifications.requestPermission();
+      const isEnabled = OneSignal.Notifications.permission;
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
         await fetch('/api/tap', {
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.access_token}`
           },
-          body: JSON.stringify({ onesignalId: currentSubscriptionId })
+          body: JSON.stringify({ isPushEnabled: isEnabled }),
         });
-
-    } catch (e: any) {
-      console.error("Notification Setup Error:", e);
-      alert(e.message);
+      }
+      alert(isEnabled ? "通知をオンにしました" : "通知はオフのままです");
+    } catch (error) {
+      console.error(error);
+      alert("設定に失敗しました");
     } finally {
       setIsPushLoading(false);
     }
