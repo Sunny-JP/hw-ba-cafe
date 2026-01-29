@@ -69,7 +69,7 @@ export default function Home() {
     if (!user) return;
     
     try {
-      if (typeof window !== 'undefined' && OneSignal.Notifications) {
+      if (typeof window !== 'undefined' && OneSignal.User) {
         await OneSignal.login(user.id);
       }
     } catch (e) {
@@ -112,10 +112,19 @@ export default function Home() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
-      const isPushEnabled = OneSignal.User.PushSubscription.optedIn;
-      const onesignalId = OneSignal.User.PushSubscription.id;
+      let isPushEnabled = undefined;
+      let onesignalId = undefined;
 
-      await fetch('/api/tap', {
+      try {
+        if (typeof window !== 'undefined' && OneSignal.User?.PushSubscription) {
+          isPushEnabled = OneSignal.User.PushSubscription.optedIn;
+          onesignalId = OneSignal.User.PushSubscription.id;
+        }
+      } catch (osError) {
+        console.warn("OneSignal state access failed, proceeding with sync:", osError);
+      }
+
+      const res = await fetch('/api/tap', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,6 +138,9 @@ export default function Home() {
           ticket2Time: t2ISO
         })
       });
+
+      if (!res.ok) throw new Error("Server sync failed");
+
     } catch (error) {
       console.error("Sync failed", error);
     } finally {
