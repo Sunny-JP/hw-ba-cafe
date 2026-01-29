@@ -8,7 +8,7 @@ export const runtime = 'edge';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { tapTime, isPushEnabled, ticket1Time, ticket2Time } = body;
+    const { tapTime, isPushEnabled, onesignalId, ticket1Time, ticket2Time } = body;
     const authHeader = request.headers.get('Authorization');
     
     const supabase = createClient(
@@ -22,16 +22,22 @@ export async function POST(request: Request) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // --- DB更新処理 ---
+    // --- 1. DB更新用データの構築 ---
     const upsertData: any = { 
       id: user.id, 
       updated_at: new Date().toISOString() 
     };
 
-    if (isPushEnabled !== undefined) upsertData.is_push_enabled = isPushEnabled;
+    if (isPushEnabled !== undefined) {
+      upsertData.is_push_enabled = Boolean(isPushEnabled);
+    }
     
-    if (ticket1Time) upsertData.ticket1_time = new Date(ticket1Time).toISOString();
-    if (ticket2Time) upsertData.ticket2_time = new Date(ticket2Time).toISOString();
+    if (onesignalId) {
+      upsertData.onesignal_id = onesignalId;
+    }
+
+    if (ticket1Time !== undefined) upsertData.ticket1_time = ticket1Time ? new Date(ticket1Time).toISOString() : null;
+    if (ticket2Time !== undefined) upsertData.ticket2_time = ticket2Time ? new Date(ticket2Time).toISOString() : null;
 
     if (tapTime) {
       const { data: profile } = await supabase.from('profiles').select('tap_history').eq('id', user.id).single();
@@ -44,17 +50,23 @@ export async function POST(request: Request) {
       upsertData.tap_history = newHistory;
     }
 
+    // DBへの書き込みを実行
     await supabase.from('profiles').upsert(upsertData);
 
-    // --- 通知予約処理 ---
-    if (tapTime && shouldScheduleNotification(new Date(tapTime))) {
+    const { data: currentProfile } = await supabase
+      .from('profiles')
+      .select('is_push_enabled')
+      .eq('id', user.id)
+      .single();
+
+    if (tapTime && currentProfile?.is_push_enabled && shouldScheduleNotification(new Date(tapTime))) {
       const sendAfter = new Date(tapTime);
       sendAfter.setSeconds(0, 0); 
       sendAfter.setHours(sendAfter.getHours() + 3);
 
       const randomMsg = messages[Math.floor(Math.random() * messages.length)];
       
-      await fetch("https://onesignal.com/api/v1/notifications", {
+      const osResponse = await fetch("https://onesignal.com/api/v1/notifications", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -69,6 +81,11 @@ export async function POST(request: Request) {
           send_after: sendAfter.toISOString(), 
         })
       });
+
+      if (!osResponse.ok) {
+        const errorMsg = await osResponse.text();
+        console.error("OneSignal API Error:", errorMsg);
+      }
     }
 
     return NextResponse.json({ success: true });

@@ -40,26 +40,55 @@ const Settings = () => {
   ];
 
   const handleNotificationClick = async () => {
+    if (isPushLoading) return;
     setIsPushLoading(true);
+
     try {
-      await OneSignal.Notifications.requestPermission();
-      const isEnabled = OneSignal.Notifications.permission;
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await fetch('/api/tap', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`
-          },
-          body: JSON.stringify({ isPushEnabled: isEnabled }),
-        });
+      if (!OneSignal.User) throw new Error("通知システムが未ロードです。");
+
+      // 1. 通知権限のリクエスト (booleanが返る)
+      const isAllowed = await OneSignal.Notifications.requestPermission();
+      if (!isAllowed) {
+        alert("通知がブロックされています。ブラウザの設定で許可してください。");
+        return;
       }
-      alert(isEnabled ? "通知をオンにしました" : "通知はオフのままです");
-    } catch (error) {
-      console.error(error);
-      alert("設定に失敗しました");
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error("ログインが必要です。");
+
+      // 2. ユーザーIDを同期
+      await OneSignal.login(session.user.id);
+
+      // 3. 購読状態の切り替え (optedIn を使用)
+      const isCurrentlyOptedIn = OneSignal.User.PushSubscription.optedIn;
+      if (isCurrentlyOptedIn) {
+        await OneSignal.User.PushSubscription.optOut();
+        alert("通知をOFFにしました。");
+      } else {
+        await OneSignal.User.PushSubscription.optIn();
+        alert("通知をONにしました！");
+      }
+
+      // 4. 最新の状態をDBに同期
+      // optOut/In 後の最新の状態を取得して送信
+      const finalOptedIn = OneSignal.User.PushSubscription.optedIn;
+      const currentSubscriptionId = OneSignal.User.PushSubscription.id;
+
+      await fetch('/api/tap', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ 
+          onesignalId: currentSubscriptionId,
+          isPushEnabled: finalOptedIn // ここで真偽値を送る
+        })
+      });
+
+    } catch (e: any) {
+      console.error("Notification Error:", e);
+      alert(e.message);
     } finally {
       setIsPushLoading(false);
     }

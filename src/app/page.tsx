@@ -111,7 +111,9 @@ export default function Home() {
     
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const isPushEnabled = OneSignal.Notifications.permission;
+
+      const isPushEnabled = OneSignal.User.PushSubscription.optedIn;
+      const onesignalId = OneSignal.User.PushSubscription.id;
 
       await fetch('/api/tap', {
         method: 'POST',
@@ -122,6 +124,7 @@ export default function Home() {
         body: JSON.stringify({
           tapTime: tapISO,
           isPushEnabled: isPushEnabled,
+          onesignalId: onesignalId,
           ticket1Time: t1ISO,
           ticket2Time: t2ISO
         })
