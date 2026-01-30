@@ -8,7 +8,7 @@ export const runtime = 'edge';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { tapTime, isPushEnabled, onesignalId, ticket1Time, ticket2Time } = body;
+    const { tapTime, ticket1Time, ticket2Time } = body;
     const authHeader = request.headers.get('Authorization');
     
     const supabase = createClient(
@@ -28,20 +28,13 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString() 
     };
 
-    if (isPushEnabled !== undefined) {
-      upsertData.is_push_enabled = Boolean(isPushEnabled);
-    }
-    
-    if (onesignalId) {
-      upsertData.onesignal_id = onesignalId;
-    }
-
     if (ticket1Time !== undefined) upsertData.ticket1_time = ticket1Time ? new Date(ticket1Time).toISOString() : null;
     if (ticket2Time !== undefined) upsertData.ticket2_time = ticket2Time ? new Date(ticket2Time).toISOString() : null;
 
+    let newHistory: string[] = [];
     if (tapTime) {
       const { data: profile } = await supabase.from('profiles').select('tap_history').eq('id', user.id).single();
-      const newHistory = [...(profile?.tap_history || [])];
+      newHistory = [...(profile?.tap_history || [])];
       
       const tapDate = new Date(tapTime);
       tapDate.setMilliseconds(0);
@@ -50,16 +43,9 @@ export async function POST(request: Request) {
       upsertData.tap_history = newHistory;
     }
 
-    // DBへの書き込みを実行
     await supabase.from('profiles').upsert(upsertData);
 
-    const { data: currentProfile } = await supabase
-      .from('profiles')
-      .select('is_push_enabled')
-      .eq('id', user.id)
-      .single();
-
-    if (tapTime && currentProfile?.is_push_enabled && shouldScheduleNotification(new Date(tapTime))) {
+    if (tapTime && shouldScheduleNotification(new Date(tapTime))) {
       const sendAfter = new Date(tapTime);
       sendAfter.setSeconds(0, 0); 
       sendAfter.setHours(sendAfter.getHours() + 3);
@@ -88,7 +74,8 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, history: newHistory });
+
   } catch (error: any) {
     console.error("API Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
