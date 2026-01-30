@@ -111,29 +111,16 @@ export default function Home() {
     
     try {
       const { data: { session } } = await supabase.auth.getSession();
-
-      let isPushEnabled = undefined;
-      let onesignalId = undefined;
-
-      try {
-        if (typeof window !== 'undefined' && OneSignal.User?.PushSubscription) {
-          isPushEnabled = OneSignal.User.PushSubscription.optedIn;
-          onesignalId = OneSignal.User.PushSubscription.id;
-        }
-      } catch (osError) {
-        console.warn("OneSignal state access failed, proceeding with sync:", osError);
-      }
+      if (!session) return;
 
       const res = await fetch('/api/tap', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           tapTime: tapISO,
-          isPushEnabled: isPushEnabled,
-          onesignalId: onesignalId,
           ticket1Time: t1ISO,
           ticket2Time: t2ISO
         })

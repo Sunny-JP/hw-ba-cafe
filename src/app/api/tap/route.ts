@@ -59,14 +59,14 @@ export async function POST(request: Request) {
       .eq('id', user.id)
       .single();
 
-    if (tapTime && currentProfile?.is_push_enabled && shouldScheduleNotification(new Date(tapTime))) {
+    if (tapTime && shouldScheduleNotification(new Date(tapTime))) {
       const sendAfter = new Date(tapTime);
       sendAfter.setSeconds(0, 0); 
       sendAfter.setHours(sendAfter.getHours() + 3);
 
       const randomMsg = messages[Math.floor(Math.random() * messages.length)];
       
-      const osResponse = await fetch("https://onesignal.com/api/v1/notifications", {
+      await fetch("https://onesignal.com/api/v1/notifications", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -81,16 +81,10 @@ export async function POST(request: Request) {
           send_after: sendAfter.toISOString(), 
         })
       });
-
-      if (!osResponse.ok) {
-        const errorMsg = await osResponse.text();
-        console.error("OneSignal API Error:", errorMsg);
-      }
     }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("API Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
