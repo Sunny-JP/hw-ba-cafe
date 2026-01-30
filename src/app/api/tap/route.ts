@@ -8,7 +8,7 @@ export const runtime = 'edge';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { tapTime, isPushEnabled, onesignalId, ticket1Time, ticket2Time } = body;
+    const { tapTime, ticket1Time, ticket2Time } = body;
     const authHeader = request.headers.get('Authorization');
     
     const supabase = createClient(
@@ -28,20 +28,13 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString() 
     };
 
-    if (isPushEnabled !== undefined) {
-      upsertData.is_push_enabled = Boolean(isPushEnabled);
-    }
-    
-    if (onesignalId) {
-      upsertData.onesignal_id = onesignalId;
-    }
-
     if (ticket1Time !== undefined) upsertData.ticket1_time = ticket1Time ? new Date(ticket1Time).toISOString() : null;
     if (ticket2Time !== undefined) upsertData.ticket2_time = ticket2Time ? new Date(ticket2Time).toISOString() : null;
 
+    let newHistory: string[] = [];
     if (tapTime) {
       const { data: profile } = await supabase.from('profiles').select('tap_history').eq('id', user.id).single();
-      const newHistory = [...(profile?.tap_history || [])];
+      newHistory = [...(profile?.tap_history || [])];
       
       const tapDate = new Date(tapTime);
       tapDate.setMilliseconds(0);
@@ -50,14 +43,7 @@ export async function POST(request: Request) {
       upsertData.tap_history = newHistory;
     }
 
-    // DBへの書き込みを実行
     await supabase.from('profiles').upsert(upsertData);
-
-    const { data: currentProfile } = await supabase
-      .from('profiles')
-      .select('is_push_enabled')
-      .eq('id', user.id)
-      .single();
 
     if (tapTime && shouldScheduleNotification(new Date(tapTime))) {
       const sendAfter = new Date(tapTime);
@@ -66,7 +52,7 @@ export async function POST(request: Request) {
 
       const randomMsg = messages[Math.floor(Math.random() * messages.length)];
       
-      await fetch("https://onesignal.com/api/v1/notifications", {
+      const osResponse = await fetch("https://onesignal.com/api/v1/notifications", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -81,10 +67,17 @@ export async function POST(request: Request) {
           send_after: sendAfter.toISOString(), 
         })
       });
+
+      if (!osResponse.ok) {
+        const errorMsg = await osResponse.text();
+        console.error("OneSignal API Error:", errorMsg);
+      }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, history: newHistory });
+
   } catch (error: any) {
+    console.error("API Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
