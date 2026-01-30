@@ -3,14 +3,14 @@ import { Mandali, Kosugi_Maru } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 
-const mandali = Mandali({ 
-  weight: "400", 
+const mandali = Mandali({
+  weight: "400",
   subsets: ["latin"],
   variable: "--font-mandali",
 });
 
-const kosugi = Kosugi_Maru({ 
-  weight: "400", 
+const kosugi = Kosugi_Maru({
+  weight: "400",
   subsets: ["latin"],
   variable: "--font-kosugi",
 });
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Cafe Timer",
-    description: "大切な人との記憶を、永遠に。。",
+    description: "大切な人との記憶を、永遠に。",
     images: ["https://cafetimer.rabbit1.cc/ogp.png"],
   },
 };
