@@ -31,24 +31,29 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: '/(.*)',
+        source: '/api/:path*',
         headers: [
           {
-            key: 'Content-Security-Policy',
-            value: cspHeader,
+            key: 'Access-Control-Allow-Origin',
+            value: 'https://rabbit1.cc', 
           },
           {
-            key: 'X-Frame-Options',
-            value: 'DENY',
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET,POST,OPTIONS,DELETE,PATCH',
           },
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
+            key: 'Access-Control-Allow-Headers',
+            value: 'X-CSRF-Token, X-Requested-With, Accept, Content-Type, Authorization',
           },
-          {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
-          },
+        ],
+      },
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'Content-Security-Policy', value: cspHeader },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'origin-when-cross-origin' },
         ],
       },
     ];
