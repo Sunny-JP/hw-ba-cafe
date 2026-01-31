@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Mandali, Kosugi_Maru } from "next/font/google";
+import { GoogleAnalytics } from '@next/third-parties/google';
 import "./globals.css";
 import Providers from "./providers";
 
@@ -65,6 +66,7 @@ export default function RootLayout({
   return (
     <html lang="ja" className="h-full">
       <body className={`${mandali.variable} ${kosugi.variable} h-full`}>
+        <GoogleAnalytics gaId="G-FQSKNGBJ7W" />
         <Providers>
           {children}
         </Providers>
