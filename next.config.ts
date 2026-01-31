@@ -3,11 +3,11 @@ import withPWAInit from "@ducanh2912/next-pwa";
 
 const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.onesignal.com https://onesignal.com;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.onesignal.com https://onesignal.com https://static.cloudflareinsights.com;
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: https://lh3.googleusercontent.com https://cdn.discordapp.com https://*.onesignal.com;
     font-src 'self';
-    connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.onesignal.com https://onesignal.com;
+    connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.onesignal.com https://onesignal.com https://cloudflareinsights.com;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
