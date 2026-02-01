@@ -64,6 +64,13 @@ export default function FaqPage() {
 
           <div className="flex flex-col gap-1">
             <h3 className="font-bold text-foreground">
+              Q: 1つの端末で複数アカウントを管理できますか？</h3>
+            <p className="font-normal text-sm">
+              A: 可能ですが、本サイトはアカウントを切り替えて使うシステムを実装していませんので、都度ログアウト・ログインが必要となります。また、通知機能は端末ごとに管理されており、1つの端末につき1つのアカウントのみ通知を受信できますのでご了承ください。</p>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <h3 className="font-bold text-foreground">
               Q: このサービスは無料で使えますか？</h3>
             <p className="font-normal text-sm">
               A: はい、すべての機能を無料でご利用いただけます。ただし、個人開発のサービスであるため、予告なく仕様変更やサービス停止を行う可能性がある点はあらかじめご了承ください。</p>
