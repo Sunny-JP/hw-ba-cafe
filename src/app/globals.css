@@ -261,7 +261,7 @@ body {
   height: auto;
   cursor: pointer;
   border: none;
-  transform: skewX(-20deg);
+  transform: skewX(-10deg);
   border-radius: 8px;
   position: relative;
   display: flex;
@@ -270,11 +270,11 @@ body {
 }
 .btn-timer span,
 .btn-timer div {
-  transform: skewX(20deg);
+  transform: skewX(10deg);
 }
 .btn-timer:hover:not(:disabled) {
   filter: brightness(1.1);
-  transform: skewX(-20deg) translateX(5px);
+  transform: skewX(-10deg) translateX(5px);
 }
 .btn-timer:disabled {
   background-color: var(--muted);
