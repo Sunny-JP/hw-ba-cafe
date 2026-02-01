@@ -34,6 +34,7 @@ const Settings = () => {
   const menuItems = [
     { label: 'About', path: '/about' },
     { label: '使い方ガイド', path: '/guide' },
+    { label: 'FAQ', path: '/faq' },
     { label: '利用規約', path: '/terms' },
     { label: 'プライバシーポリシー', path: '/privacy' },
     { label: '運営者情報', path: '/operator' },
@@ -81,8 +82,13 @@ const Settings = () => {
     }
   };
 
-  const handleDeleteData = async () => {
-    if (!window.confirm("本当に全データを削除しますか？")) return;
+const handleDeleteData = async () => {
+    const firstConfirm = window.confirm("本当に全データを削除しますか？\nこの操作は取り消せません。");
+    if (!firstConfirm) return;
+
+    const secondConfirm = window.confirm("本当に、すべての記録を完全に消去してもよろしいですか？\nこの操作は取り消せません。");
+    if (!secondConfirm) return;
+
     setIsDeleting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -99,7 +105,6 @@ const Settings = () => {
       setIsDeleting(false);
     }
   };
-
   return (
     <div className="p-4">
       <div className="space-y-4">
