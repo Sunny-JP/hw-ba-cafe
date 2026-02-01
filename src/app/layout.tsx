@@ -3,6 +3,7 @@ import { Mandali, Kosugi_Maru } from "next/font/google";
 import { GoogleAnalytics } from '@next/third-parties/google';
 import "./globals.css";
 import Providers from "./providers";
+import TouchEffect from "@/components/TouchEffect";
 
 const mandali = Mandali({
   weight: "400",
@@ -68,6 +69,7 @@ export default function RootLayout({
       <body className={`${mandali.variable} ${kosugi.variable} h-full`}>
         <GoogleAnalytics gaId="G-FQSKNGBJ7W" />
         <Providers>
+          <TouchEffect />
           {children}
         </Providers>
       </body>

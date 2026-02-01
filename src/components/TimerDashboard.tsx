@@ -165,7 +165,7 @@ export default function TimerDashboard({
           disabled={!canTapCafe || isSyncing}
           className="btn-timer btn-timer-tap"
         >
-          { !isDataLoaded ? 'Wait...' : isSyncing ? 'Wait...' : 'Tap' }
+          <span>{ !isDataLoaded ? 'Wait...' : isSyncing ? 'Wait...' : 'Tap' }</span>
         </button>
       </div>
 
@@ -180,7 +180,7 @@ export default function TimerDashboard({
               onClick={() => onInvite(1)}
               disabled={!isDataLoaded || ticket1Remaining > 0 || isSyncing}
               className="btn-timer btn-timer-tap"
-            >{ isSyncing ? 'Wait...' : 'Ticket 1' }</button>
+            ><span>{ isSyncing ? 'Wait...' : 'Ticket 1' }</span></button>
           </div>
           <div className="flex flex-col gap-2">
             <div className="countdown-text-s bg-background/50 p-2 rounded">
@@ -190,7 +190,7 @@ export default function TimerDashboard({
               onClick={() => onInvite(2)}
               disabled={!isDataLoaded || ticket2Remaining > 0 || isSyncing}
               className="btn-timer btn-timer-tap"
-            >{ isSyncing ? 'Wait...' : 'Ticket 2' }</button>
+            ><span>{ isSyncing ? 'Wait...' : 'Ticket 2' }</span></button>
           </div>
         </div>
       </div>
