@@ -18,7 +18,7 @@ const kosugi = Kosugi_Maru({
 
 export const metadata: Metadata = {
   title: "Cafe Timer",
-  description: "大切な人との記憶を、永遠に。",
+  description: "この一瞬を、アーカイブ。",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Cafe Timer",
-    description: "大切な人との記憶を、永遠に。",
+    description: "この一瞬を、アーカイブ。",
     url: "https://cafetimer.rabbit1.cc",
     siteName: "Cafe Timer",
     images: [
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Cafe Timer",
-    description: "大切な人との記憶を、永遠に。",
+    description: "この一瞬を、アーカイブ。",
     images: ["https://cafetimer.rabbit1.cc/ogp.png"],
   },
 };
