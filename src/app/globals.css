@@ -254,26 +254,36 @@ body {
   font-weight: 700;
   padding: 3cqw 0;
   margin: 0;
-  border-radius: 1.5cqw;
   font-size: 4.5cqw;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
   background-color: var(--primary);
   color: var(--primary-foreground);
   height: auto;
+  cursor: pointer;
+  border: none;
+  transform: skewX(-20deg);
+  border-radius: 8px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-timer span,
+.btn-timer div {
+  transform: skewX(20deg);
+}
+.btn-timer:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: skewX(-20deg) translateX(5px);
 }
 .btn-timer:disabled {
   background-color: var(--muted);
   color: var(--muted-foreground);
   cursor: not-allowed;
 }
-
-.btn-timer-tap {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-  transition: all 0.2s ease-in-out;
-}
-.btn-timer-tap:hover {
-  filter: brightness(0.9);
+.btn-timer:disabled::before,
+.btn-timer:disabled::after {
+  background-color: var(--muted);
 }
 
 .cal-info {
@@ -425,5 +435,34 @@ input[type="range"]::-moz-range-thumb {
   .btn-timer {
     padding: 2cqw 0;
     font-size: 3.5cqw;
+  }
+}
+
+.ba-ring-container {
+  overflow: visible;
+}
+.ba-glow-ring {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 1.5;
+  transform-origin: center;
+  opacity: 0;
+  filter: blur(1px) drop-shadow(0 0 4px var(--primary));
+  animation: ba-glow-anim 0.5s ease-out forwards;
+}
+.dark .ba-glow-ring {
+  filter: drop-shadow(0 0 4px var(--primary)) drop-shadow(0 0 12px var(--primary)) brightness(1.8);
+}
+@keyframes ba-glow-anim {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
   }
 }

@@ -33,7 +33,34 @@ export async function POST(request: Request) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // --- 1. DB更新用データの構築 ---
+    // --- 1. 重複タップ防止ロジック ---
+    if (tapTime) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tap_history')
+        .eq('id', user.id)
+        .single();
+      
+      const history = profile?.tap_history || [];
+      if (history.length > 0) {
+        const lastTapDate = new Date(history[history.length - 1]);
+        const currentTapDate = new Date(tapTime);
+        const diffMs = currentTapDate.getTime() - lastTapDate.getTime();
+
+        // 1時間以内の連続タップをチェック
+        if (diffMs < 3600000) { 
+          const lastShouldNotify = shouldScheduleNotification(lastTapDate);
+          const currentShouldNotify = shouldScheduleNotification(currentTapDate);
+
+          // 通知予約の判定（送る/送らない）が同じ時間枠なら、重複として拒否
+          if (lastShouldNotify === currentShouldNotify) {
+            return NextResponse.json({ error: 'Duplicate tap within 1 hour' }, { status: 429 });
+          }
+        }
+      }
+    }
+
+    // --- 2. DB更新データの作成 ---
     const upsertData: any = { 
       id: user.id, 
       updated_at: new Date().toISOString() 
@@ -56,6 +83,7 @@ export async function POST(request: Request) {
 
     await supabase.from('profiles').upsert(upsertData);
 
+    // --- 3. 通知予約処理 ---
     if (tapTime && shouldScheduleNotification(new Date(tapTime))) {
       const sendAfter = new Date(tapTime);
       sendAfter.setSeconds(0, 0); 

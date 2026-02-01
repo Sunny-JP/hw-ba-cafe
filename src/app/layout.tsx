@@ -3,6 +3,7 @@ import { Mandali, Kosugi_Maru } from "next/font/google";
 import { GoogleAnalytics } from '@next/third-parties/google';
 import "./globals.css";
 import Providers from "./providers";
+import TouchEffect from "@/components/TouchEffect";
 
 const mandali = Mandali({
   weight: "400",
@@ -18,7 +19,7 @@ const kosugi = Kosugi_Maru({
 
 export const metadata: Metadata = {
   title: "Cafe Timer",
-  description: "大切な人との記憶を、永遠に。",
+  description: "この一瞬を、アーカイブ。",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Cafe Timer",
-    description: "大切な人との記憶を、永遠に。",
+    description: "この一瞬を、アーカイブ。",
     url: "https://cafetimer.rabbit1.cc",
     siteName: "Cafe Timer",
     images: [
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Cafe Timer",
-    description: "大切な人との記憶を、永遠に。",
+    description: "この一瞬を、アーカイブ。",
     images: ["https://cafetimer.rabbit1.cc/ogp.png"],
   },
 };
@@ -68,6 +69,7 @@ export default function RootLayout({
       <body className={`${mandali.variable} ${kosugi.variable} h-full`}>
         <GoogleAnalytics gaId="G-FQSKNGBJ7W" />
         <Providers>
+          <TouchEffect />
           {children}
         </Providers>
       </body>

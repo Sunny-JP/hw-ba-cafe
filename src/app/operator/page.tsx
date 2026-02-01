@@ -10,7 +10,8 @@ export default function OperatorPage() {
           <div className="flex flex-col gap-2">
             <h3 className="font-bold text-foreground">運営代表・開発</h3>
             <p className="font-normal">
-              ・さにー <a href="https://x.com/156miyako" target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-400">@156miyako</a></p>
+              ・さにー <a href="https://x.com/156miyako" target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-400">@156miyako </a>
+              <a href="https://rabbit1.cc" target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-400">https://rabbit1.cc</a></p>
           </div>
 
           <div className="flex flex-col gap-2">
