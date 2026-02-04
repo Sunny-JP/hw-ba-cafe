@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { toPng } from 'html-to-image';
 
@@ -8,12 +8,17 @@ const SITE_URL = "https://cafetimer.rabbit1.cc";
 
 interface HistoryCalendarProps {
   tapHistory: number[];
+  onMonthChange: (year: number, month: number) => void;
 }
 
-const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
+const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory, onMonthChange }) => {
   const [currentDate, setCurrentDate] = useState(() => toZonedTime(new Date(), JST_TZ));
   const [isExporting, setIsExporting] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    onMonthChange(currentDate.getFullYear(), currentDate.getMonth() + 1);
+  }, [currentDate, onMonthChange]);
 
   const getLogicalDateString = (timestamp: number): string => {
     const adjustedTime = timestamp - 4 * 60 * 60 * 1000;
@@ -59,6 +64,12 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
     }
   };
 
+  const changeMonth = (offset: number) => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() + offset);
+    setCurrentDate(newDate);
+  };
+
   const calendarDays = [];
   for (let i = 0; i < startDay; i++) {
     calendarDays.push(<div key={`empty-${i}`} className="p-2 aspect-square"></div>);
@@ -76,12 +87,6 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
     );
   }
 
-  const changeMonth = (offset: number) => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(newDate.getMonth() + offset);
-    setCurrentDate(newDate);
-  };
-
   return (
     <div className="cal-container">
       <div className="flex justify-between items-center mb-6">
@@ -95,21 +100,14 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
         <button onClick={() => changeMonth(1)} className="cal-nav">Next</button>
       </div>
 
-      <div 
-        ref={exportRef} 
-        className={`bg-(--background) ${isExporting ? 'export-container' : 'w-full rounded-2xl'}`}
-      >
-        {isExporting && (
-          <div className="export-header">{year} / {String(month + 1).padStart(2, '0')}</div>
-        )}
-
+      <div ref={exportRef} className={`bg-(--background) ${isExporting ? 'export-container' : 'w-full rounded-2xl'}`}>
+        {isExporting && <div className="export-header">{year} / {String(month + 1).padStart(2, '0')}</div>}
         <div className={`grid grid-cols-7 ${isExporting ? 'export-grid' : 'gap-2'}`}>
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
             <div key={d} className={`text-center font-bold cal-week ${isExporting ? 'export-week' : 'text-xl pb-4'}`}>{d}</div>
           ))}
           {calendarDays}
         </div>
-
         {isExporting && (
           <div className="export-footer">
             <div className="export-site-name">{SITE_NAME}</div>
@@ -119,49 +117,13 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory }) => {
       </div>
 
       <style jsx>{`
-        .export-container {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 1440px;
-          height: 1440px;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          padding: 80px 100px;
-          z-index: -100;
-        }
-        .export-header {
-          font-size: 100px !important;
-          font-weight: 800;
-          text-align: center;
-          margin-bottom: 20px;
-        }
-        .export-grid {
-          gap: 20px !important;
-        }
-        .export-week {
-          font-size: 32px !important;
-          opacity: 0.6;
-        }
-        :global(.export-text-days) {
-          font-size: 50px !important;
-          line-height: 1 !important;
-          left: 15px !important;
-          top: 15px !important;
-        }
-        :global(.export-text-taps) {
-          font-size: 70px !important;
-          line-height: 1 !important;
-          font-weight: 700 !important;
-          right: 20px !important;
-          bottom: 20px !important;
-        }
-        .export-footer {
-          text-align: center;
-          opacity: 0.5;
-          margin-top: 30px;
-        }
+        .export-container { position: fixed; top: 0; left: 0; width: 1440px; height: 1440px; display: flex; flex-direction: column; justify-content: space-between; padding: 80px 100px; z-index: -100; }
+        .export-header { font-size: 100px !important; font-weight: 800; text-align: center; margin-bottom: 20px; }
+        .export-grid { gap: 20px !important; }
+        .export-week { font-size: 32px !important; opacity: 0.6; }
+        :global(.export-text-days) { font-size: 50px !important; line-height: 1 !important; left: 15px !important; top: 15px !important; }
+        :global(.export-text-taps) { font-size: 70px !important; line-height: 1 !important; font-weight: 700 !important; right: 20px !important; bottom: 20px !important; }
+        .export-footer { text-align: center; opacity: 0.5; margin-top: 30px; }
         .export-site-name { font-size: 38px; font-weight: 700; }
         .export-site-url { font-size: 24px; }
       `}</style>

@@ -19,6 +19,7 @@ export async function OPTIONS() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    // tapTime（通知・履歴用）とチケット時間を取得
     const { tapTime, ticket1Time, ticket2Time } = body;
     const authHeader = request.headers.get('Authorization');
     
@@ -33,34 +34,34 @@ export async function POST(request: Request) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // --- 1. 重複タップ防止ロジック ---
+    // --- 1. 重複タップ防止ロジック (tapsテーブルから最新レコードを確認) ---
     if (tapTime) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tap_history')
-        .eq('id', user.id)
-        .single();
+      const { data: lastTap } = await supabase
+        .from('taps')
+        .select('tap_time')
+        .eq('user_id', user.id)
+        .order('tap_time', { ascending: false })
+        .limit(1)
+        .maybeSingle();
       
-      const history = profile?.tap_history || [];
-      if (history.length > 0) {
-        const lastTapDate = new Date(history[history.length - 1]);
+      if (lastTap) {
+        const lastTapDate = new Date(lastTap.tap_time);
         const currentTapDate = new Date(tapTime);
         const diffMs = currentTapDate.getTime() - lastTapDate.getTime();
 
-        // 1時間以内の連続タップをチェック
+        // 1時間以内の同一時間枠タップをチェック
         if (diffMs < 3600000) { 
-          const lastShouldNotify = shouldScheduleNotification(lastTapDate);
-          const currentShouldNotify = shouldScheduleNotification(currentTapDate);
-
-          // 通知予約の判定（送る/送らない）が同じ時間枠なら、重複として拒否
-          if (lastShouldNotify === currentShouldNotify) {
+          if (shouldScheduleNotification(lastTapDate) === shouldScheduleNotification(currentTapDate)) {
             return NextResponse.json({ error: 'Duplicate tap within 1 hour' }, { status: 429 });
           }
         }
       }
+      
+      // 重複でなければ新テーブルにインサート
+      await supabase.from('taps').insert([{ user_id: user.id, tap_time: new Date(tapTime).toISOString() }]);
     }
 
-    // --- 2. DB更新データの作成 ---
+    // --- 2. profilesテーブルの更新 (チケット時間のみ) ---
     const upsertData: any = { 
       id: user.id, 
       updated_at: new Date().toISOString() 
@@ -69,18 +70,7 @@ export async function POST(request: Request) {
     if (ticket1Time !== undefined) upsertData.ticket1_time = ticket1Time ? new Date(ticket1Time).toISOString() : null;
     if (ticket2Time !== undefined) upsertData.ticket2_time = ticket2Time ? new Date(ticket2Time).toISOString() : null;
 
-    let newHistory: string[] = [];
-    if (tapTime) {
-      const { data: profile } = await supabase.from('profiles').select('tap_history').eq('id', user.id).single();
-      newHistory = [...(profile?.tap_history || [])];
-      
-      const tapDate = new Date(tapTime);
-      tapDate.setMilliseconds(0);
-      newHistory.push(tapDate.toISOString());
-      
-      upsertData.tap_history = newHistory;
-    }
-
+    // tap_historyカラムへの書き込みは行わない（profilesを軽量に保つ）
     await supabase.from('profiles').upsert(upsertData);
 
     // --- 3. 通知予約処理 ---
@@ -91,7 +81,7 @@ export async function POST(request: Request) {
 
       const randomMsg = messages[Math.floor(Math.random() * messages.length)];
       
-      const osResponse = await fetch("https://onesignal.com/api/v1/notifications", {
+      await fetch("https://onesignal.com/api/v1/notifications", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -106,14 +96,9 @@ export async function POST(request: Request) {
           send_after: sendAfter.toISOString(), 
         })
       });
-
-      if (!osResponse.ok) {
-        const errorMsg = await osResponse.text();
-        console.error("OneSignal API Error:", errorMsg);
-      }
     }
 
-    return NextResponse.json({ success: true, history: newHistory });
+    return NextResponse.json({ success: true });
 
   } catch (error: any) {
     console.error("API Error:", error);

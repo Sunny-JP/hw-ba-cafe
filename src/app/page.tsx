@@ -35,7 +35,6 @@ function LoginScreen() {
         <p className="mb-8 text-muted-foreground text-sm">
           利用するにはログインしてください
         </p>
-        
         <button 
           onClick={handleLogin} 
           disabled={isLoginLoading}
@@ -57,14 +56,37 @@ function LoginScreen() {
 export default function Home() {
   const { isLoggedIn, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('timer');
-  const [tapHistory, setTapHistory] = useState<number[]>([]);
+  
+  // ステートの分離
+  const [timerHistory, setTimerHistory] = useState<number[]>([]);
+  const [calendarHistory, setCalendarHistory] = useState<number[]>([]);
+  
   const [ticket1Time, setTicket1Time] = useState<Date | null>(null);
   const [ticket2Time, setTicket2Time] = useState<Date | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
 
-  const loadData = useCallback(async () => {
+  // 月次データ取得の共通関数
+  const fetchMonthlyData = useCallback(async (year: number, month: number) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase.rpc('get_taps_by_logical_month', {
+      target_user_id: user.id,
+      target_year: year,
+      target_month: month
+    });
+
+    if (error) {
+      console.error("Fetch monthly data error:", error);
+      return [];
+    }
+    return (data || []).map((t: any) => new Date(t.tap_time).getTime());
+  }, []);
+
+  // 初期ロード
+  const loadInitialData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     
@@ -75,63 +97,71 @@ export default function Home() {
     } catch (e) {
       console.warn("OneSignal login skipped:", e);
     }
-  
+
     try {
-      const { data, error } = await supabase
+      // 1. チケット情報の取得
+      const { data: profile } = await supabase
         .from('profiles')
-        .select('*')
+        .select('ticket1_time, ticket2_time')
         .eq('id', user.id)
         .single();
 
-      if (error) throw error;
-      
-      if (data) {
-        if (data.tap_history && Array.isArray(data.tap_history)) {
-          const numericHistory = data.tap_history
-            .map((t: string) => new Date(t).getTime())
-            .filter((t: number) => !isNaN(t));
-
-          setTapHistory(numericHistory);
-          console.log("Success: Loaded tap history", numericHistory.length, "items");
-        }
-
-        if (data.ticket1_time) setTicket1Time(new Date(data.ticket1_time));
-        if (data.ticket2_time) setTicket2Time(new Date(data.ticket2_time));
+      if (profile) {
+        if (profile.ticket1_time) setTicket1Time(new Date(profile.ticket1_time));
+        if (profile.ticket2_time) setTicket2Time(new Date(profile.ticket2_time));
       }
+
+      // 2. 現在の論理的な月を判定してフル取得
+      const now = new Date();
+      const jstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+      let year = jstNow.getUTCFullYear();
+      let month = jstNow.getUTCMonth() + 1;
+      
+      // 4時境界の補正 (1日の朝4時前なら前月を取得)
+      if (jstNow.getUTCDate() === 1 && jstNow.getUTCHours() < 4) {
+        const prev = new Date(jstNow);
+        prev.setUTCDate(0);
+        year = prev.getUTCFullYear();
+        month = prev.getUTCMonth() + 1;
+      }
+
+      const fullMonthlyData = await fetchMonthlyData(year, month);
+      
+      // 両方のステートを更新（カレンダーは全件、タイマーは計算用に全件持たせる）
+      setCalendarHistory(fullMonthlyData);
+      setTimerHistory(fullMonthlyData);
+
     } catch (e) {
-      console.error("Load error", e);
+      console.error("Initial load error", e);
     } finally {
       setIsDataLoaded(true);
     }
-  }, []);
+  }, [fetchMonthlyData]);
 
-  const syncData = async (tapISO?: string, t1ISO?: string | null, t2ISO?: string | null) => {
-    if (!isLoggedIn) return;
+  // カレンダーの月切り替え用
+  const loadMonthlyData = useCallback(async (year: number, month: number) => {
     setIsSyncing(true);
-    
+    const data = await fetchMonthlyData(year, month);
+    setCalendarHistory(data);
+    setIsSyncing(false);
+  }, [fetchMonthlyData]);
+
+  const syncTickets = async (t1ISO?: string | null, t2ISO?: string | null) => {
+    if (!isLoggedIn) return;
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const res = await fetch('/api/tap', {
+      await fetch('/api/tap', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({
-          tapTime: tapISO,
-          ticket1Time: t1ISO,
-          ticket2Time: t2ISO
-        })
+        body: JSON.stringify({ ticket1Time: t1ISO, ticket2Time: t2ISO })
       });
-
-      if (!res.ok) throw new Error("Server sync failed");
-
     } catch (error) {
-      console.error("Sync failed", error);
-    } finally {
-      setIsSyncing(false);
+      console.error("Ticket sync failed", error);
     }
   };
 
@@ -139,22 +169,27 @@ export default function Home() {
     if (!isLoggedIn || isSyncing) return;
     
     const now = new Date();
-    now.setMilliseconds(0);
     const newTapMs = now.getTime();
     
-    setTapHistory(prev => [...prev, newTapMs]);
+    setTimerHistory(prev => [...prev, newTapMs]);
+    setCalendarHistory(prev => [...prev, newTapMs]);
     
-    await syncData(
-      now.toISOString(), 
-      ticket1Time?.toISOString() || null, 
-      ticket2Time?.toISOString() || null
-    );
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      // APIを叩くことで通知予約も同時に行う
+      await fetch('/api/tap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ tapTime: now.toISOString() })
+      });
+    }
   };
 
   const handleInvite = async (ticketNumber: 1 | 2) => { 
     const now = new Date();
-    now.setMilliseconds(0);
-    
     let t1ISO = ticket1Time?.toISOString() || null;
     let t2ISO = ticket2Time?.toISOString() || null;
 
@@ -165,16 +200,17 @@ export default function Home() {
         setTicket2Time(now);
         t2ISO = now.toISOString();
     }
-    await syncData(undefined, t1ISO, t2ISO);
+    await syncTickets(t1ISO, t2ISO);
   };
 
   useEffect(() => { 
-    if (isLoggedIn && !isLoading) loadData(); 
-  }, [isLoggedIn, isLoading, loadData]);
+    if (isLoggedIn && !isLoading) loadInitialData(); 
+  }, [isLoggedIn, isLoading, loadInitialData]);
 
-  const lastTapTime = tapHistory.length > 0 ? new Date(tapHistory[tapHistory.length - 1]) : null;
+  const lastTapTime = timerHistory.length > 0 ? new Date(timerHistory[timerHistory.length - 1]) : null;
 
   if (isLoading) return <div className="flex justify-center items-center h-screen font-bold">Loading...</div>;
+
   return (
     <div className="bg-background h-screen flex flex-col">
       <OneSignalInit />
@@ -185,7 +221,7 @@ export default function Home() {
             <div className="min-[1000px]:hidden flex-1">
               {activeTab === 'timer' && (
                   <TimerDashboard
-                    tapHistory={tapHistory}
+                    tapHistory={timerHistory}
                     lastTapTime={lastTapTime}
                     ticket1Time={ticket1Time}
                     ticket2Time={ticket2Time}
@@ -197,7 +233,7 @@ export default function Home() {
               )}
               {activeTab === 'history' && (
                   <div className="p-4">
-                    <HistoryCalendar tapHistory={tapHistory} />
+                    <HistoryCalendar tapHistory={calendarHistory} onMonthChange={loadMonthlyData} />
                   </div>
               )}
             </div>
@@ -206,7 +242,7 @@ export default function Home() {
               <div className="grid grid-cols-2 gap-6 w-full max-w-[160svh] mx-auto items-stretch">
                 <div className="flex flex-col justify-center">
                   <TimerDashboard
-                    tapHistory={tapHistory}
+                    tapHistory={timerHistory}
                     lastTapTime={lastTapTime}
                     ticket1Time={ticket1Time}
                     ticket2Time={ticket2Time}
@@ -217,7 +253,7 @@ export default function Home() {
                   />
                 </div>
                 <div className="flex flex-col justify-center">
-                  <HistoryCalendar tapHistory={tapHistory} />
+                  <HistoryCalendar tapHistory={calendarHistory} onMonthChange={loadMonthlyData} />
                 </div>
               </div>
             </div>
