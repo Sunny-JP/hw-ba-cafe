@@ -103,6 +103,7 @@ body {
   color: var(--secondary-foreground);
   background-color: transparent;
   transition: all 0.2s ease-in-out;
+  cursor: pointer;
 }
 .btn-setting:hover {
   color: var(--secondary);
@@ -115,7 +116,7 @@ body {
   align-items: center;
   justify-content: center;
   padding-top: 14px;
-  padding-bottom: 16px;
+  padding-bottom: 18px;
   color: var(--nav-foreground);
   background-color: var(--background);
   transition: all 0.2s ease-in-out;
@@ -333,12 +334,14 @@ body {
   color: var(--secondary-foreground);
   background-color: transparent;
   transition: all 0.2s ease-in-out;
+  cursor: pointer;
 }
 .cal-save-nav {
   font-size: 2.5cqw;
   color: var(--secondary-foreground);
   background-color: transparent;
   transition: all 0.2s ease-in-out;
+  cursor: pointer;
 }
 .cal-nav:hover,
 .cal-save-nav:hover {
