@@ -103,6 +103,7 @@ body {
   color: var(--secondary-foreground);
   background-color: transparent;
   transition: all 0.2s ease-in-out;
+  cursor: pointer;
 }
 .btn-setting:hover {
   color: var(--secondary);
@@ -115,7 +116,7 @@ body {
   align-items: center;
   justify-content: center;
   padding-top: 14px;
-  padding-bottom: 16px;
+  padding-bottom: 18px;
   color: var(--nav-foreground);
   background-color: var(--background);
   transition: all 0.2s ease-in-out;
@@ -144,6 +145,25 @@ body {
 .dark .btn-nav.active,
 .dark .btn-nav:hover.active {
   color: var(--foreground);
+}
+.btn-nav-bar {
+  height: 2.5px;
+  width: 0px;
+  opacity: 0;
+  transition:
+    width 0.2s ease-out,
+    opacity 0.2s ease-out;
+  bottom: -8px;
+}
+.btn-nav-bar.active {
+  background-color: var(--primary);
+  width: 50px;
+  opacity: 1;
+}
+.dark .btn-nav-bar.active {
+  background-color: var(--foreground);
+  width: 50px;
+  opacity: 1;
 }
 .dashboard-container {
   container-type: inline-size;
@@ -247,6 +267,7 @@ body {
 }
 .slot-text-sub {
   font-size: 2cqw;
+  margin-top: -0.7cqw;
 }
 
 .btn-timer {
@@ -313,12 +334,14 @@ body {
   color: var(--secondary-foreground);
   background-color: transparent;
   transition: all 0.2s ease-in-out;
+  cursor: pointer;
 }
 .cal-save-nav {
   font-size: 2.5cqw;
   color: var(--secondary-foreground);
   background-color: transparent;
   transition: all 0.2s ease-in-out;
+  cursor: pointer;
 }
 .cal-nav:hover,
 .cal-save-nav:hover {

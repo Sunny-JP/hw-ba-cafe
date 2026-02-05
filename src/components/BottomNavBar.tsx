@@ -15,10 +15,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeTab, setActiveTab }) 
   ];
 
   return (
-    <div
-      className="fixed bottom-0 left-0 right-0 desktop-hidden"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-    >
+    <div className="fixed bottom-0 left-0 right-0 desktop-hidden">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
@@ -27,9 +24,12 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeTab, setActiveTab }) 
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`btn-nav ${isActive ? 'active' : ''}`}
+            className={`btn-nav relative flex flex-col items-center justify-center ${isActive ? 'active' : ''}`}
           >
-            <Icon size={30} />
+            <div className="relative flex flex-col items-center">
+              <Icon size={30} />
+              <div className={`btn-nav-bar absolute rounded-full ${isActive ? 'active' : ''}`}/>
+            </div>
           </button>
         );
       })}

@@ -37,7 +37,7 @@ const Settings = () => {
     { label: 'FAQ', path: '/faq' },
     { label: '利用規約', path: '/terms' },
     { label: 'プライバシーポリシー', path: '/privacy' },
-    { label: '運営者情報', path: '/operator' },
+    { label: '運営者情報・変更履歴', path: '/operator' },
   ];
 
   const handleNotificationClick = async () => {
@@ -135,7 +135,7 @@ const handleDeleteData = async () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <button 
                   onClick={handleNotificationClick} 
                   disabled={isPushLoading}

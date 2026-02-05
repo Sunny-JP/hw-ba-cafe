@@ -25,7 +25,7 @@ export default function ThemeToggleButton() {
   };
 
   return (
-    <button onClick={toggleTheme} className="p-2 rounded-md hover:bg-secondary">
+    <button onClick={toggleTheme} className="p-2 rounded-md hover:bg-secondary cursor-pointer">
       {theme === 'light' ? <MoonIcon /> : <SunIcon />}
     </button>
   );

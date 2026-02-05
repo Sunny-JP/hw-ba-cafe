@@ -19,10 +19,8 @@ export async function OPTIONS() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    // tapTime（通知・履歴用）とチケット時間を取得
     const { tapTime, ticket1Time, ticket2Time } = body;
     const authHeader = request.headers.get('Authorization');
-    
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -34,7 +32,12 @@ export async function POST(request: Request) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // --- 1. 重複タップ防止ロジック (tapsテーブルから最新レコードを確認) ---
+    // ミリ秒を切り捨てた基準時刻を作成
+    const now = new Date();
+    now.setMilliseconds(0);
+    const nowIso = now.toISOString();
+
+    // 1. カフェタップの処理
     if (tapTime) {
       const { data: lastTap } = await supabase
         .from('taps')
@@ -44,36 +47,42 @@ export async function POST(request: Request) {
         .limit(1)
         .maybeSingle();
       
+      const currentTapDate = new Date(tapTime);
+      currentTapDate.setMilliseconds(0);
+
       if (lastTap) {
         const lastTapDate = new Date(lastTap.tap_time);
-        const currentTapDate = new Date(tapTime);
         const diffMs = currentTapDate.getTime() - lastTapDate.getTime();
 
-        // 1時間以内の同一時間枠タップをチェック
         if (diffMs < 3600000) { 
           if (shouldScheduleNotification(lastTapDate) === shouldScheduleNotification(currentTapDate)) {
-            return NextResponse.json({ error: 'Duplicate tap within 1 hour' }, { status: 429 });
+            return NextResponse.json({ error: 'Duplicate tap' }, { status: 429 });
           }
         }
       }
-      
-      // 重複でなければ新テーブルにインサート
-      await supabase.from('taps').insert([{ user_id: user.id, tap_time: new Date(tapTime).toISOString() }]);
+      await supabase.from('taps').insert([{ user_id: user.id, tap_time: currentTapDate.toISOString() }]);
     }
 
-    // --- 2. profilesテーブルの更新 (チケット時間のみ) ---
+    // 2. プロフィールの更新
     const upsertData: any = { 
       id: user.id, 
-      updated_at: new Date().toISOString() 
+      updated_at: nowIso 
     };
 
-    if (ticket1Time !== undefined) upsertData.ticket1_time = ticket1Time ? new Date(ticket1Time).toISOString() : null;
-    if (ticket2Time !== undefined) upsertData.ticket2_time = ticket2Time ? new Date(ticket2Time).toISOString() : null;
+    if (ticket1Time !== undefined) {
+      const d1 = ticket1Time ? new Date(ticket1Time) : null;
+      if (d1) d1.setMilliseconds(0);
+      upsertData.ticket1_time = d1 ? d1.toISOString() : null;
+    }
+    if (ticket2Time !== undefined) {
+      const d2 = ticket2Time ? new Date(ticket2Time) : null;
+      if (d2) d2.setMilliseconds(0);
+      upsertData.ticket2_time = d2 ? d2.toISOString() : null;
+    }
 
-    // tap_historyカラムへの書き込みは行わない（profilesを軽量に保つ）
     await supabase.from('profiles').upsert(upsertData);
 
-    // --- 3. 通知予約処理 ---
+    // 3. 通知予約処理
     if (tapTime && shouldScheduleNotification(new Date(tapTime))) {
       const sendAfter = new Date(tapTime);
       sendAfter.setSeconds(0, 0); 
