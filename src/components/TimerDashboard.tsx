@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { addHours, differenceInMilliseconds } from 'date-fns';
-import { formatInTimeZone } from 'date-fns-tz';
+import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
 import CountdownDisplay from './CountdownDisplay';
 import { getSessionEndTime } from '@/lib/timeUtils';
 
@@ -31,6 +31,7 @@ export default function TimerDashboard({
 }: TimerDashboardProps) {
   const [now, setNow] = useState(new Date());
   
+  // デバイスのタイムゾーンを取得
   const userTimeZone = useMemo(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -42,6 +43,7 @@ export default function TimerDashboard({
     return JST_TZ;
   }, []);
 
+  // 日本時間（JST）設定かどうかを判定
   const isJst = userTimeZone === JST_TZ;
 
   useEffect(() => {
@@ -50,6 +52,7 @@ export default function TimerDashboard({
     return () => clearInterval(timer);
   }, []);
 
+  // 次回タップまでの残り時間計算
   const cafeTapRemaining = useMemo(() => {
     if (!lastTapTime) return 0;
     const endTime = getSessionEndTime(lastTapTime);
@@ -63,56 +66,60 @@ export default function TimerDashboard({
     return cafeTapRemaining <= 0;
   }, [isDataLoaded, lastTapTime, cafeTapRemaining]);
 
+  // チケットの残り時間計算
   const ticket1Remaining = useMemo(() => {
     if (!ticket1Time) return 0;
     return differenceInMilliseconds(addHours(ticket1Time, 20), now);
   }, [now, ticket1Time]);
+
   const ticket2Remaining = useMemo(() => {
     if (!ticket2Time) return 0;
     return differenceInMilliseconds(addHours(ticket2Time, 20), now);
   }, [now, ticket2Time]);
 
+  // 8スロットの生成ロジック
   const dailySlots = useMemo(() => {
-    let cycleStart = new Date(now);
-    const currentHourJst = parseInt(formatInTimeZone(now, JST_TZ, 'H'), 10);
-    if (currentHourJst < 4) {
-      cycleStart = addHours(cycleStart, -24);
+    // 1. 日本時間での現在時刻をベースにサイクルの起点(04:00)を算出
+    const nowJstStr = formatInTimeZone(now, JST_TZ, "yyyy-MM-dd'T'HH:mm:ss");
+    const jstNow = new Date(nowJstStr);
+    
+    let cycleStartDate = new Date(jstNow);
+    if (jstNow.getHours() < 4) {
+      cycleStartDate.setDate(cycleStartDate.getDate() - 1);
     }
-    const cycleStartStr = formatInTimeZone(cycleStart, JST_TZ, "yyyy-MM-dd'T'04:00:00");
-    cycleStart = new Date(cycleStartStr);
+    
+    const cycleStartJstStr = `${formatInTimeZone(cycleStartDate, JST_TZ, "yyyy-MM-dd")}T04:00:00`;
+    const cycleStartUtc = fromZonedTime(cycleStartJstStr, JST_TZ);
 
     return Array.from({ length: 8 }, (_, i) => {
-      const start = addHours(cycleStart, i * 3);
-      const end = addHours(start, 3);
+      const startUtc = addHours(cycleStartUtc, i * 3);
+      const endUtc = addHours(startUtc, 3);
       
-      const timeJst = formatInTimeZone(start, JST_TZ, 'HH:mm');
-      const timeLocal = formatInTimeZone(start, userTimeZone, 'HH:mm');
-      
-      let mainLabel = timeJst;
-      let subLabel = null;
-
-      if (!isJst) {
-        mainLabel = timeLocal;
-        subLabel = `${timeJst} JST`;
-      }
-      const tapEntryStr = (tapHistory || []).find((tStr) => {
-        const t = new Date(tStr).getTime();
-        return t >= start.getTime() && t < end.getTime();
+      // 履歴からこの枠に収まるタップを探す
+      const tapEntry = (tapHistory || []).find((t) => {
+        const tapMs = new Date(t).getTime();
+        return tapMs >= startUtc.getTime() && tapMs < endUtc.getTime();
       });
 
-      const tapEntry = tapEntryStr ? new Date(tapEntryStr).getTime() : null;
-      const tapTimeLocal = tapEntry ? formatInTimeZone(tapEntry, userTimeZone, 'HH:mm') : null;
-      const tapTimeJst = tapEntry ? formatInTimeZone(tapEntry, JST_TZ, 'HH:mm') : null;
+      const tapMs = tapEntry ? new Date(tapEntry).getTime() : null;
+
+      // 表示用ラベルの決定 タップ済みの場合は実測時間、未タップの場合は枠の開始時間を採用
+      const mainLabel = tapMs 
+        ? formatInTimeZone(tapMs, userTimeZone, 'HH:mm')
+        : formatInTimeZone(startUtc, userTimeZone, 'HH:mm');
+
+      const subLabelJst = tapMs 
+        ? formatInTimeZone(tapMs, JST_TZ, 'HH:mm')
+        : formatInTimeZone(startUtc, JST_TZ, 'HH:mm');
+
       return {
         mainLabel,
-        subLabel,
-        tapTimeLocal,
-        tapTimeJst,
-        isCurrent: now >= start && now < end,
+        subLabelJst,
+        isCurrent: now >= startUtc && now < endUtc,
         hasTapped: !!tapEntry
       };
     });
-  }, [tapHistory, now, userTimeZone, isJst]);
+  }, [tapHistory, now, userTimeZone]);
 
   return (
     <div className="dashboard-container">
@@ -137,25 +144,19 @@ export default function TimerDashboard({
                           : 'slot-default'
               }`}
             >
-              {slot.hasTapped ? (
-                <div className="flex flex-col items-center leading-tight">
-                  <span className="slot-text-main">{slot.tapTimeLocal}</span>
-                  {!isJst && (
-                    <span className="slot-text-sub whitespace-nowrap">
-                      ({slot.tapTimeJst} JST)
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center leading-tight">
-                  <span className="slot-text-main">{slot.mainLabel}</span>
-                  {slot.subLabel && (
-                    <span className="slot-text-sub whitespace-nowrap">
-                      ({slot.subLabel})
-                    </span>
-                  )}
-                </div>
-              )}
+              <div className="flex flex-col items-center leading-tight">
+                <span 
+                  className="slot-text-main"
+                  style={!isJst ? { marginTop: '-0.5cqw' } : {}}
+                >
+                  {slot.mainLabel}
+                </span>
+                {!isJst && (
+                  <span className="slot-text-sub whitespace-nowrap">
+                    {slot.subLabelJst} JST
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>

@@ -247,6 +247,7 @@ body {
 }
 .slot-text-sub {
   font-size: 2cqw;
+  margin-top: -0.7cqw;
 }
 
 .btn-timer {
