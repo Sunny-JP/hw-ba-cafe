@@ -31,6 +31,13 @@ export default function FaqPage() {
               A: テキストデータなどによるエクスポートは、今のところは対応していません。SNSなどへの共有は、月ごとの画像エクスポート機能をご使用ください。</p>
           </div>
 
+          <div className="flex flex-col gap-1">
+            <h3 className="font-bold text-foreground">
+              Q: The history calendar doesn't match the dates I actually tapped.</h3>
+            <p className="font-normal text-sm">
+              A: The historical calendar considers the period from 4:00 AM to 3:59 AM the following day (Japan Standard Time) as one day. If you reside in a country using a time zone different from UTC+9, please understand this may not match the actual date you use.</p>
+          </div>
+
           <h2 className="text-xl font-bold mb-3 text-foreground border-b border-muted pb-2">
               🟨 システム
           </h2>
