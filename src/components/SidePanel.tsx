@@ -19,7 +19,7 @@ const SidePanel = ({ isOpen, onClose, children }: SidePanelProps) => {
         onClick={onClose}
       />
       <div 
-        className={`fixed top-0 right-0 h-full w-[75vw] sm:w-100 bg-(--background) shadow-2xl z-50 transform transition-transform duration-300 ease-in-out border-l border-muted ${
+        className={`fixed top-0 right-0 h-full w-[75vw] sm:w-90 bg-(--background) shadow-2xl z-50 transform transition-transform duration-300 ease-in-out border-l border-muted ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >

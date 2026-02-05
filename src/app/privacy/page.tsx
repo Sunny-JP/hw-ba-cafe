@@ -31,7 +31,7 @@ export default function PrivacyPage() {
         </div>
 
         <div className="mt-8 pt-4">
-          <Link href="/" className="btn-setting inline-block text-center w-full sm:w-auto">
+          <Link href="/" className="btn-setting inline-block text-center w-full">
             ホームに戻る
           </Link>
         </div>

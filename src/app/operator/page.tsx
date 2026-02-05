@@ -12,7 +12,7 @@ export default function OperatorPage() {
         
         <div className="space-y-6 text-muted-foreground">
           {/* 運営・開発情報 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <div className="flex flex-col gap-2">
               <h3 className="font-bold text-foreground border-b border-muted pb-1">運営代表・開発</h3>
               <p className="font-normal">
@@ -56,7 +56,7 @@ export default function OperatorPage() {
         </div>
 
         <div className="mt-8 pt-4">
-          <Link href="/" className="btn-setting inline-block text-center w-full sm:w-auto">
+          <Link href="/" className="btn-setting inline-block text-center w-full">
             ホームに戻る
           </Link>
         </div>
