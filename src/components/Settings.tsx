@@ -37,7 +37,7 @@ const Settings = () => {
     { label: 'FAQ', path: '/faq' },
     { label: '利用規約', path: '/terms' },
     { label: 'プライバシーポリシー', path: '/privacy' },
-    { label: '運営者情報', path: '/operator' },
+    { label: '運営者情報・変更履歴', path: '/operator' },
   ];
 
   const handleNotificationClick = async () => {
