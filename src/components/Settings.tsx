@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useAuth, supabase } from "@/hooks/useAuth"; 
 import OneSignal from 'react-onesignal';
 
@@ -26,18 +25,22 @@ const BellIcon = ({ className = 'h-5 w-5 mr-2' }: { className?: string }) => (
   </svg>
 );
 
-const Settings = () => {
+interface SettingsProps {
+  onOpenContent: (key: string) => void;
+}
+
+const Settings = ({ onOpenContent }: SettingsProps) => {
   const { isLoggedIn, logout, avatarUrl, displayName } = useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPushLoading, setIsPushLoading] = useState(false);
 
   const menuItems = [
-    { label: 'About', path: '/about' },
-    { label: '使い方ガイド', path: '/guide' },
-    { label: 'FAQ', path: '/faq' },
-    { label: '利用規約', path: '/terms' },
-    { label: 'プライバシーポリシー', path: '/privacy' },
-    { label: '運営者情報・変更履歴', path: '/operator' },
+    { label: 'About', key: 'about' },
+    { label: '使い方ガイド', key: 'guide' },
+    { label: 'FAQ', key: 'faq' },
+    { label: '利用規約', key: 'terms' },
+    { label: 'プライバシーポリシー', key: 'privacy' },
+    { label: '運営者情報・変更履歴', key: 'operator' },
   ];
 
   const handleNotificationClick = async () => {
@@ -109,11 +112,14 @@ const Settings = () => {
       <div className="space-y-4">
         <ul className="space-y-1">
           {menuItems.map((item) => (
-            <li key={item.label}>
-              <Link href={item.path} className="btn-setting flex items-center p-2 rounded transition-colors">
+            <li key={item.key}>
+              <button 
+                onClick={() => onOpenContent(item.key)}
+                className="btn-setting flex items-center w-full p-2 rounded transition-colors"
+              >
                 <MenuItemIcon />
                 <span>{item.label}</span>
-              </Link>
+              </button>
             </li>
           ))}
         </ul>
@@ -148,7 +154,7 @@ const Settings = () => {
                   disabled={isDeleting} 
                   className="btn-setting flex items-center justify-center p-2 rounded transition-opacity active:opacity-70"
                 >
-                  {isDeleting ? (<><TrashIcon className="mr-2 opacity-50" /><span>削除中…</span></>) : (<><TrashIcon /><span>データ削除</span></>)}
+                  {isDeleting ? (<><TrashIcon /><span>削除中…</span></>) : (<><TrashIcon /><span>データ削除</span></>)}
                 </button>
                 <button 
                   onClick={handleLogoutClick} 
