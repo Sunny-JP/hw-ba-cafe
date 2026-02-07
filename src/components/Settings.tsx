@@ -82,7 +82,7 @@ const Settings = () => {
     }
   };
 
-const handleDeleteData = async () => {
+  const handleDeleteData = async () => {
     const firstConfirm = window.confirm("本当に全データを削除しますか？\nこの操作は取り消せません。");
     if (!firstConfirm) return;
 
@@ -91,13 +91,11 @@ const handleDeleteData = async () => {
 
     setIsDeleting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from('profiles').delete().eq('id', user.id);
-        await logout();
-        alert("データを削除しました。");
-        window.location.href = "/";
-      }
+      const { error } = await supabase.rpc('delete_user_account');
+      if (error) throw error;
+      alert("すべてのデータを削除しました。");
+      await logout();
+      window.location.href = "/";
     } catch (err: any) {
       console.error(err);
       alert("削除に失敗しました: " + err.message);
@@ -105,6 +103,7 @@ const handleDeleteData = async () => {
       setIsDeleting(false);
     }
   };
+  
   return (
     <div className="p-4">
       <div className="space-y-4">
