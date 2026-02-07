@@ -194,34 +194,36 @@ export const OVERLAY_CONTENTS: Record<string, { title: string; body: React.React
       <div className="space-y-4 font-normal text-sm">
         <p>この利用規約（以下、「本規約」といいます。）は、本ウェブサイト上で提供するサービス（以下、「本サービス」といいます。）の利用条件を定めるものです。</p>
 
-        <h3 className="font-bold text-foreground mt-4">1. 免責事項</h3>
+        <h3 className="font-bold text-foreground mt-6">1. 免責事項</h3>
         <ul className="list-disc pl-5">
-          <li>本サービスは現状有姿で提供され、その正確性、完全性、有用性を保証するものではありません。</li>
+          <li>本サービスは現状有姿で提供され、その機密性、完全性、可用性を保証するものではありません。</li>
           <li>本サービスの利用により生じた損害（ゲーム内での損失、データ消失など）について、運営者は一切の責任を負いません。</li>
           <li>通知機能はブラウザや設定、端末、ネットワーク環境等に依存するため、確実に届くことを保証するものではありません。</li>
         </ul>
 
-        <h3 className="font-bold text-foreground mt-4">2. 禁止事項</h3>
+        <h3 className="font-bold text-foreground mt-6">2. 禁止事項</h3>
         <ul className="list-disc pl-5">
-          <li>本サービスのサーバーに過度な負荷をかける行為<br />（Discordアカウントを複数用いてのログインは、良識の範囲内に限り許可します）</li>
+          <li>本サービスのサーバーに過度な負荷をかける行為</li>
           <li>不正アクセス行為</li>
           <li>本ツールを営利目的に使用する行為</li>
+          <li>日本国における法令に反する行為</li>
           <li>その他、運営者が不適切と判断する行為</li>
+          <li>禁止事項に違反した場合は、アカウント及び保存されたデータの削除、IPアドレス遮断などの相当な措置を行うことがあります。</li>
         </ul>
 
-        <h3 className="font-bold text-foreground mt-4">3. サービスの変更・停止</h3>
+        <h3 className="font-bold text-foreground mt-6">3. サービスの変更・停止</h3>
         <ul className="list-disc pl-5">
           <li>運営者は、ユーザーに通知することなく、本サービスの内容を変更または提供を中止することができるものとします。</li>
         </ul>
 
-        <h3 className="font-bold text-foreground mt-4">4. 著作権</h3>
+        <h3 className="font-bold text-foreground mt-6">4. 著作権</h3>
         <ul className="list-disc pl-5">
           <li>本サービスは個人によって制作された非公式ツールであり、株式会社Yostar、NEXON Games、およびその他の関連団体とは一切関係ありません。</li>
           <li>本サービス中の『ブルーアーカイブ』に関係するデータ等の著作権は、株式会社Yostar、NEXON Games、およびその他の権利者に帰属します。</li>
           <li>本サービスのファビコンおよびアプリアイコンは、<a href="https://www.flaticon.com/free-icons/coffee-break" title="coffee break icons" target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-400">Freepik社</a> のライセンスの下で使用しています。</li>
         </ul>
         
-        <p className="text-right">2026年1月1日 発効</p>
+        <p className="text-right">2026年2月8日 発効</p>
       </div>
     ),
   },
@@ -231,25 +233,35 @@ export const OVERLAY_CONTENTS: Record<string, { title: string; body: React.React
       <div className="space-y-4 font-normal text-sm">
         <p>当サイト（以下、「当方」）は、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下、「本ポリシー」）を定めます。</p>
 
-        <h3 className="font-bold text-foreground mt-4">1. 収集する情報</h3>
+        <h3 className="font-bold text-foreground mt-6">1. 収集する情報</h3>
         <ul className="list-disc pl-5">
           <li><b>認証情報</b>: Discordログイン時に提供されるユーザーID、メールアドレス、プロフィール画像URL。これらはユーザーの識別とデータ保存のためにのみ使用されます。</li>
           <li><b>利用データ</b>: タイマーのタップ履歴、設定情報。</li>
           <li><b>通知トークン</b>: プッシュ通知を送信するために必要なトークン。</li>
         </ul>
 
-        <h3 className="font-bold text-foreground mt-4">2. 利用目的</h3>
+        <h3 className="font-bold text-foreground mt-6">2. 利用目的</h3>
         <ul className="list-disc pl-5">
           <li>本サービスの提供・運営のため</li>
           <li>通知機能の提供のため</li>
+          <li>アクセス解析による利便性向上のため</li>
           <li>不正アクセスの防止のため</li>
         </ul>
 
-        <h3 className="font-bold text-foreground mt-4">3. 第三者への提供</h3>
+        <h3 className="font-bold text-foreground mt-6">3. アクセス解析ツール</h3>
+        <p>
+          当サイトでは、サービスの改善を目的として以下のツールを利用し、個人を特定できない匿名のトラフィックデータを収集しています。
+        </p>
+        <ul className="list-disc pl-5">
+          <li><b>Google Analytics</b>: Cookieを使用してサイトの利用状況を収集するために使用されます。</li>
+          <li><b>Cloudflare Browser Insights</b>: サイトのパフォーマンスや接続状況を分析するために使用されます。</li>
+        </ul>
+
+        <h3 className="font-bold text-foreground mt-6">4. 第三者への提供</h3>
         <p>当方は、法令に基づく場合を除き、予めユーザーの同意を得ることなく第三者に個人情報を提供することはありません。ただし、本サービスの基盤としてSupabaseを使用しており、データはSupabaseのサーバー上で管理されます。</p>
 
-        <h3 className="font-bold text-foreground mt-4">4. データの削除</h3>
-        <p>ユーザーは設定画面の「データ削除」ボタンから、いつでも自身の全データをサーバーから完全に削除することができます。</p>
+        <h3 className="font-bold text-foreground mt-6">5. データの削除</h3>
+        <p>ユーザーは設定画面の「データ削除」ボタンから、いつでも自身の全データをサーバーから完全に削除することができます。なお、アクセス解析によって収集された匿名情報については、本操作の対象外となります。</p>
       </div>
     ),
   },
@@ -298,7 +310,7 @@ export const OVERLAY_CONTENTS: Record<string, { title: string; body: React.React
                 GitHub
               </a> 
               または X (Twitter) までお願いいたします。
-              個人開発のため全てのご意見への対応は難しい場合がありますが、Pull Requestなど積極的に受け付けています。
+              個人開発のため全てのご意見への対応は難しい場合がありますが、Pull Requestなど積極的に受け付けています。特にWeb開発経験をお持ちの方は、ご協力いただけると幸いです。
             </p>
           </div>
         </div>
