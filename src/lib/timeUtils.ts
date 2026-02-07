@@ -3,6 +3,12 @@ import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
 const JST_TZ = 'Asia/Tokyo';
 
+// カレンダーの移動制限範囲（運用開始月～現在の月）
+export const CALENDAR_LIMITS = {
+  MIN: new Date(2025, 12, 1),
+  MAX: new Date(),
+} as const;
+
 // 境界線（4時/16時）を求める
 export const getNextBoundary = (date: Date): Date => {
   const jst = toZonedTime(date, JST_TZ);

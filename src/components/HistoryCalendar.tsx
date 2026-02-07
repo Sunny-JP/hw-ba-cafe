@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { toPng } from 'html-to-image';
+import { CALENDAR_LIMITS } from '@/lib/timeUtils';
 
 const JST_TZ = 'Asia/Tokyo';
 const SITE_NAME = "My Tap History  by  Cafe Timer";
@@ -8,17 +9,20 @@ const SITE_URL = "https://cafetimer.rabbit1.cc";
 
 interface HistoryCalendarProps {
   tapHistory: number[];
+  currentDate: Date;
   onMonthChange: (year: number, month: number) => void;
 }
 
-const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory, onMonthChange }) => {
-  const [currentDate, setCurrentDate] = useState(() => toZonedTime(new Date(), JST_TZ));
-  const [isExporting, setIsExporting] = useState(false);
+const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory, currentDate, onMonthChange }) => {
   const exportRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = React.useState(false);
 
-  useEffect(() => {
-    onMonthChange(currentDate.getFullYear(), currentDate.getMonth() + 1);
-  }, [currentDate, onMonthChange]);
+  const jstDate = toZonedTime(currentDate, JST_TZ);
+  const year = jstDate.getFullYear();
+  const month = jstDate.getMonth();
+
+  const canPrev = year > CALENDAR_LIMITS.MIN.getFullYear() || month > CALENDAR_LIMITS.MIN.getMonth();
+  const canNext = year < CALENDAR_LIMITS.MAX.getFullYear() || month < CALENDAR_LIMITS.MAX.getMonth();
 
   const getLogicalDateString = (timestamp: number): string => {
     const adjustedTime = timestamp - 4 * 60 * 60 * 1000;
@@ -32,8 +36,6 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory, onMonthCh
     return acc;
   }, {} as Record<string, number[]>);
 
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
   const firstDayIndex = new Date(year, month, 1).getDay();
   const startDay = (firstDayIndex + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -42,17 +44,11 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory, onMonthCh
     if (!exportRef.current) return;
     setIsExporting(true);
     await new Promise((resolve) => setTimeout(resolve, 200));
-
     try {
       const dataUrl = await toPng(exportRef.current, {
-        canvasWidth: 1440,
-        canvasHeight: 1440,
-        width: 1440,
-        height: 1440,
-        style: { transform: 'none' },
-        cacheBust: true,
+        canvasWidth: 1440, canvasHeight: 1440, width: 1440, height: 1440,
+        style: { transform: 'none' }, cacheBust: true,
       });
-
       const link = document.createElement('a');
       link.download = `History-${year}-${month + 1}.png`;
       link.href = dataUrl;
@@ -65,9 +61,12 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory, onMonthCh
   };
 
   const changeMonth = (offset: number) => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(newDate.getMonth() + offset);
-    setCurrentDate(newDate);
+    if (offset < 0 && !canPrev) return;
+    if (offset > 0 && !canNext) return;
+
+    const nextDate = new Date(currentDate);
+    nextDate.setMonth(nextDate.getMonth() + offset);
+    onMonthChange(nextDate.getFullYear(), nextDate.getMonth() + 1);
   };
 
   const calendarDays = [];
@@ -90,17 +89,27 @@ const HistoryCalendar: React.FC<HistoryCalendarProps> = ({ tapHistory, onMonthCh
   return (
     <div className="cal-container">
       <div className="flex justify-between items-center mb-6">
-        <button onClick={() => changeMonth(-1)} className="cal-nav">Prev</button>
+        <button 
+          onClick={() => changeMonth(-1)} 
+          disabled={!canPrev}
+          className={`cal-nav ${!canPrev ? 'opacity-30 cursor-not-allowed' : ''}`}
+        >
+          Prev
+        </button>
         <div className="flex flex-col items-center">
           <div className="cal-info">{year}. {month + 1}</div>
-          <button onClick={handleExportImage} className="cal-save-nav uppercase tracking-widest">
-            Save Image
-          </button>
+          <button onClick={handleExportImage} className="cal-save-nav uppercase tracking-widest">Save Image</button>
         </div>
-        <button onClick={() => changeMonth(1)} className="cal-nav">Next</button>
+        <button 
+          onClick={() => changeMonth(1)} 
+          disabled={!canNext}
+          className={`cal-nav ${!canNext ? 'opacity-30 cursor-not-allowed' : ''}`}
+        >
+          Next
+        </button>
       </div>
 
-      <div ref={exportRef} className={`bg-(--background) ${isExporting ? 'export-container' : 'w-full rounded-2xl'}`}>
+      <div ref={exportRef} className={`bg-(--background) ${isExporting ? 'export-container' : 'w-full rounded-2xl overflow-hidden'}`}>
         {isExporting && <div className="export-header">{year} / {String(month + 1).padStart(2, '0')}</div>}
         <div className={`grid grid-cols-7 ${isExporting ? 'export-grid' : 'gap-2'}`}>
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
