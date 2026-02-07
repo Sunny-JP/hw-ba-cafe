@@ -19,8 +19,8 @@
   --tap-bg-2: hsl(var(--tap-h) var(--tap-s) 93%);
   --tap-bg-3: hsl(var(--tap-h) var(--tap-s) 89%);
   --tap-bg-4: hsl(var(--tap-h) var(--tap-s) 86%);
-  --tap-bg-5: hsl(var(--tap-h) var(--tap-s) 79%);
-  --tap-bg-6: hsl(var(--tap-h) var(--tap-s) 74%);
+  --tap-bg-5: hsl(var(--tap-h) var(--tap-s) 78%);
+  --tap-bg-6: hsl(var(--tap-h) var(--tap-s) 73%);
   --tap-bg-7: hsl(var(--tap-h) var(--tap-s) 66%);
   --tap-bg-8: hsl(var(--tap-h) var(--tap-s) 59%);
 }
@@ -42,9 +42,9 @@
   --tap-bg-0: #0f0e1a;
   --tap-bg-8: hsl(var(--tap-h) var(--tap-s) 56%);
   --tap-bg-7: hsl(var(--tap-h) var(--tap-s) 50%);
-  --tap-bg-6: hsl(var(--tap-h) var(--tap-s) 42%);
-  --tap-bg-5: hsl(var(--tap-h) var(--tap-s) 35%);
-  --tap-bg-4: hsl(var(--tap-h) var(--tap-s) 28%);
+  --tap-bg-6: hsl(var(--tap-h) var(--tap-s) 41%);
+  --tap-bg-5: hsl(var(--tap-h) var(--tap-s) 34%);
+  --tap-bg-4: hsl(var(--tap-h) var(--tap-s) 27%);
   --tap-bg-3: hsl(var(--tap-h) var(--tap-s) 23%);
   --tap-bg-2: hsl(var(--tap-h) var(--tap-s) 16%);
   --tap-bg-1: hsl(var(--tap-h) var(--tap-s) 12%);
