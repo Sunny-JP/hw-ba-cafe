@@ -115,6 +115,13 @@ export const OVERLAY_CONTENTS: Record<string, { title: string; body: React.React
 
         <div className="flex flex-col gap-1">
           <h3 className="font-bold text-foreground">
+            Q: ゲーム内でタップしたら自動で反映されますか？</h3>
+          <p className="font-normal text-sm">
+            A: 本サイトはゲーム内のデータに一切アクセスしていません。ゲーム内カフェでのタップ後は、こちらでも手動でTapボタンを押してください。</p>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <h3 className="font-bold text-foreground">
             Q: Tap履歴のエクスポートはできますか？</h3>
           <p className="font-normal text-sm">
             A: テキストデータなどによるエクスポートは、今のところは対応していません。SNSなどへの共有は、月ごとの画像エクスポート機能をご使用ください。</p>
@@ -135,6 +142,13 @@ export const OVERLAY_CONTENTS: Record<string, { title: string; body: React.React
             Q: オフラインでも利用できますか？</h3>
           <p className="font-normal text-sm">
             A: 利用できません。インターネットに接続が必要です。</p>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <h3 className="font-bold text-foreground">
+            Q: ゲーム内部のデータを使用していますか？</h3>
+          <p className="font-normal text-sm">
+            A: 本サイトはゲーム「ブルーアーカイブ」内のいかなるアセットも使用していません。また、ゲームデータにもアクセスしていませんので、本サイトがゲーム内のアカウントに影響を与えることはありません。</p>
         </div>
 
         <div className="flex flex-col gap-1">
