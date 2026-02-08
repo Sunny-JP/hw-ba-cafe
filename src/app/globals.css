@@ -105,7 +105,13 @@ body {
   transition: all 0.2s ease-in-out;
   cursor: pointer;
 }
-.btn-setting:hover {
+.btn-close {
+  color: var(--secondary-foreground);
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+.btn-setting:hover,
+.btn-close:hover {
   color: var(--secondary);
 }
 
