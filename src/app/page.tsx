@@ -126,6 +126,25 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, [loadInitialData]);
 
+  useEffect(() => {
+    const RELOAD_THRESHOLD = 3;
+    const RELOAD_INTERVAL = 5000;
+    const now = Date.now();
+    const lastReload = sessionStorage.getItem('last_reload_time');
+    const reloadCount = parseInt(sessionStorage.getItem('reload_count') || '0');
+    if (lastReload && now - parseInt(lastReload) < RELOAD_INTERVAL) {
+      const newCount = reloadCount + 1;
+      sessionStorage.setItem('reload_count', newCount.toString());
+      if (newCount >= RELOAD_THRESHOLD) {
+        alert("短時間に連続してリロードされています。サーバ負荷軽減のため、しばらく時間を置いてから操作してください。");
+        sessionStorage.setItem('reload_count', '0');
+      }
+    } else {
+      sessionStorage.setItem('reload_count', '1');
+    }
+    sessionStorage.setItem('last_reload_time', now.toString());
+  }, []);
+
   const handleTap = async () => { 
     if (!session || isSyncing) return;
     setIsSyncing(true);
