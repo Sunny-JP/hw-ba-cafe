@@ -110,7 +110,7 @@ export const OVERLAY_CONTENTS: Record<string, { title: string; body: React.React
           <h3 className="font-bold text-foreground">
             Q: 追加招待券には対応しますか？</h3>
           <p className="font-normal text-sm">
-            A: 今のところは対応していません。が、要望が多ければ検討します。</p>
+            A: 今のところは対応していません。</p>
         </div>
 
         <div className="flex flex-col gap-1">
@@ -155,7 +155,7 @@ export const OVERLAY_CONTENTS: Record<string, { title: string; body: React.React
           <h3 className="font-bold text-foreground">
             Q: 複数の端末で同時に使えますか？</h3>
           <p className="font-normal text-sm">
-            A: 可能ですが、データの整合性を保つために、他方の端末では再読み込みを行ってから操作を開始してください。</p>
+            A: 複数端末でお使いいただけますが、複数端末での同時操作はデータの不整合を引き起こす可能性があります。データの整合性を保つために、他方の端末では再読み込みを行ってから操作を開始してください。</p>
         </div>
 
         <div className="flex flex-col gap-1">
@@ -192,7 +192,7 @@ export const OVERLAY_CONTENTS: Record<string, { title: string; body: React.React
     title: "利用規約",
     body: (
       <div className="space-y-4 font-normal text-sm">
-        <p>この利用規約（以下、「本規約」といいます。）は、本ウェブサイト上で提供するサービス（以下、「本サービス」といいます。）の利用条件を定めるものです。</p>
+        <p>この利用規約は、本ウェブサイト上で提供するサービス（以下、「本サービス」といいます。）の利用条件を定めるものです。</p>
 
         <h3 className="font-bold text-foreground mt-6">1. 免責事項</h3>
         <ul className="list-disc pl-5">
@@ -205,7 +205,7 @@ export const OVERLAY_CONTENTS: Record<string, { title: string; body: React.React
         <ul className="list-disc pl-5">
           <li>本サービスのサーバーに過度な負荷をかける行為</li>
           <li>不正アクセス行為</li>
-          <li>本ツールを営利目的に使用する行為</li>
+          <li>本サービスを営利目的に使用する行為</li>
           <li>日本国における法令に反する行為</li>
           <li>その他、運営者が不適切と判断する行為</li>
           <li>禁止事項に違反した場合は、アカウント及び保存されたデータの削除、IPアドレス遮断などの相当な措置を行うことがあります。</li>
@@ -231,7 +231,7 @@ export const OVERLAY_CONTENTS: Record<string, { title: string; body: React.React
     title: "プライバシーポリシー",
     body: (
       <div className="space-y-4 font-normal text-sm">
-        <p>当サイト（以下、「当方」）は、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下、「本ポリシー」）を定めます。</p>
+        <p>当サイトは、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシーを定めます。</p>
 
         <h3 className="font-bold text-foreground mt-6">1. 収集する情報</h3>
         <ul className="list-disc pl-5">
@@ -258,7 +258,7 @@ export const OVERLAY_CONTENTS: Record<string, { title: string; body: React.React
         </ul>
 
         <h3 className="font-bold text-foreground mt-6">4. 第三者への提供</h3>
-        <p>当方は、法令に基づく場合を除き、予めユーザーの同意を得ることなく第三者に個人情報を提供することはありません。ただし、本サービスの基盤としてSupabaseを使用しており、データはSupabaseのサーバー上で管理されます。</p>
+        <p>当サイトは、法令に基づく場合を除き、予めユーザーの同意を得ることなく第三者に個人情報を提供することはありません。ただし、本サービスの基盤としてSupabaseを使用しており、データはSupabaseのサーバー上で管理されます。</p>
 
         <h3 className="font-bold text-foreground mt-6">5. データの削除</h3>
         <p>ユーザーは設定画面の「データ削除」ボタンから、いつでも自身の全データをサーバーから完全に削除することができます。なお、アクセス解析によって収集された匿名情報については、本操作の対象外となります。</p>

@@ -19,22 +19,26 @@ const Overlay = ({ contentKey, onClose }: { contentKey: string; onClose: () => v
   if (!content) return null;
 
   return (
-    <div className="fixed inset-0 bg-(--background) z-100 overflow-y-auto">
-      <div className="max-w-4xl mx-auto p-8 pt-12">
-        <div className="bg-card rounded-lg shadow-md p-8 border border-muted">
-          <h1 className="text-3xl font-bold mb-6 text-foreground">{content.title}</h1>
-          <div className="text-foreground">
-            {content.body}
-          </div>
-          <div className="mt-8 pt-4">
-            <button 
-              onClick={onClose} 
-              className="btn-setting inline-block text-center w-full"
-            >
-              <span>閉じる</span>
-            </button>
-          </div>
+    <div className="fixed inset-0 bg-(--background) z-100 flex justify-center items-start p-6">
+      <div className="w-full max-w-4xl max-h-[93svh] mt-2 rounded-2xl shadow-xl border flex flex-col overflow-hidden">
+        <div className="border-b border-dashed flex justify-between items-center z-20">
+          <h1 className="text-2xl px-6 py-4 font-bold truncate mr-4">
+            {content.title}
+          </h1>
+          <button 
+            onClick={onClose}
+            className="btn-close px-6 py-4 cursor-pointer"
+            aria-label="Close"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
+        <div className="flex-1 overflow-y-auto p-6 font-normal">
+          {content.body}
+        </div>
+        <div className="h-2" />
       </div>
     </div>
   );
@@ -168,7 +172,7 @@ export default function Home() {
   if (!session) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-background">
-        <div className="timer-card text-center bg-card p-8 rounded-2xl shadow-lg max-w-sm w-full border border-muted">
+        <div className="timer-card text-center p-8 rounded-2xl shadow-lg max-w-sm w-full border border-muted">
           <h2 className="text-2xl font-bold mb-2">Welcome!</h2>
           <p className="mb-8 text-muted-foreground text-sm">利用するにはログインしてください</p>
           <button 
