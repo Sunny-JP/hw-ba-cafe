@@ -42,3 +42,10 @@ next-env.d.ts
 
 bun.lock
 firebase-messaging-sw.js
+# OpenNext
+.open-next
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
