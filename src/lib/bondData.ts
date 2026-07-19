@@ -864,6 +864,19 @@ export const CHARACTER_LIST = [
     } as Record<string, keyof typeof GIFT_EXP>
   },
   {
+    id: 'kisaki_swimsuit',
+    name: 'キサキ（水着）',
+    giftRatings: {
+      'レトロな卵の工芸品': 'ss',
+      '刺繍付きのハンカチ': 'na',
+      '夏模様の浮き輪': 'na',
+      '埋蔵金の地図': 'nb',
+      '世界で最も無駄な絡繰りボックス': 'nb',
+      '高級そうな欲望のつぼ': 'nb',
+      'ぜんまい式オルゴール': 'nb',
+    } as Record<string, keyof typeof GIFT_EXP>
+  },
+  {
     id: 'kirara',
     name: 'キララ',
     giftRatings: {
@@ -1254,6 +1267,19 @@ export const CHARACTER_LIST = [
       'サミュエラ「ザ・ビヨンド」': 'sa',
       'お肌を透明にするBBクリーム': 'na',
       'チェリーローズカラーのグロス': 'nb',
+      'ミリタリー用カモフラージュクリーム3種セット': 'nb',
+    } as Record<string, keyof typeof GIFT_EXP>
+  },
+  {
+    id: 'shun_swimsuit',
+    name: 'シュン（水着）',
+    giftRatings: {
+      '栄養満載の総合ビタミンゼリー': 'ss',
+      'サミュエラ「ザ・ビヨンド」': 'sa',
+      '頭脳開発キューブパズル': 'na',
+      '夏模様の浮き輪': 'na',
+      'チェリーローズカラーのグロス': 'nb',
+      'お肌を透明にするBBクリーム': 'nb',
       'ミリタリー用カモフラージュクリーム3種セット': 'nb',
     } as Record<string, keyof typeof GIFT_EXP>
   },

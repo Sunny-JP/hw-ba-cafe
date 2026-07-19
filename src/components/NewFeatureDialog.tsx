@@ -1,23 +1,29 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { UPDATE_LOGS } from '@/lib/updateLogs';
 
 export default function NewFeatureDialog() {
   const [isOpen, setIsOpen] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
 
+  const latestLog = UPDATE_LOGS[0];
+  const pastLogs = UPDATE_LOGS.slice(1);
+  
+  const latestLogId = latestLog ? `${latestLog.date}_${latestLog.content}` : 'initial';
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const isNotified = localStorage.getItem('new_feature_notified');
-      if (!isNotified) {
+      const lastNotifiedId = localStorage.getItem('new_feature_notified_id');
+      if (lastNotifiedId !== latestLogId) {
         setIsOpen(true);
       }
     }
-  }, []);
+  }, [latestLogId]);
 
   const handleClose = () => {
     if (isChecked) {
-      localStorage.setItem('new_feature_notified', 'true');
+      localStorage.setItem('new_feature_notified_id', latestLogId);
     }
     setIsOpen(false);
   };
@@ -30,32 +36,51 @@ export default function NewFeatureDialog() {
         
         <div className="border-b border-dashed flex justify-between items-center p-5">
           <h2 className="text-xl font-bold text-(--foreground) tracking-wide flex items-center gap-2">
-            <span>✨</span> 新機能追加のお知らせ
+            アップデートのお知らせ
           </h2>
         </div>
 
-        <div className="p-6 flex flex-col gap-4 text-sm font-medium leading-relaxed text-(--secondary-foreground)">
-          <p>いつもご利用いただきありがとうございます！</p>
+        <div className=" flex flex-col text-sm font-medium leading-relaxed text-(--secondary-foreground)">
           
-          <div className="bg-(--background) p-4 rounded-xl border border-dashed border-(--muted)/60 flex flex-col gap-3">
-            <div className="flex items-start gap-2">
-              <span className="text-base">▶</span>
-              <div>
-                <strong className="text-(--foreground) block font-bold">絆上げ記録機能</strong>
-                <span className="text-xs">生徒さんごとに絆上げの記録をつけられるようになりました。日付とランクを入力して登録できます。</span>
+          {/* 1. 最新の更新履歴とコメント（上部に大きく配置） */}
+          {latestLog && (
+            <div className="bg-(--background) p-4 border border-dashed border-(--primary)/30 flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-s font-bold text-(--secondary-foreground)">
+                <span>{latestLog.date}</span>
+              </div>
+              <strong className="text-base font-bold text-(--foreground) block">
+                {latestLog.content}
+              </strong>
+              {latestLog.comment && (
+                <p className="text-sm text-(--secondary-foreground) font-medium">
+                  {latestLog.comment}
+                </p>
+              )}
+            </div>
+          )}
+          
+          {/* 2. それ以前の更新履歴（下部にリスト表示） */}
+          {pastLogs.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <div className="show-scrollbar bg-(--background) p-4 border border-dashed border-(--muted)/60 flex flex-col gap-2.5 max-h-36 overflow-y-auto">
+                {pastLogs.map((log, index) => (
+                  <div key={index} className="flex flex-col gap-0.5 text-xs">
+                    <div className="flex gap-3">
+                      <span className="shrink-0 font-bold text-(--muted-foreground)">{log.date}</span>
+                      <p className="text-(--secondary-foreground)">{log.content}</p>
+                    </div>
+                    {log.comment && (
+                      <p className="text-[11px] text-(--secondary-foreground)/70 pl-18.5 leading-normal">
+                        {log.comment}
+                      </p>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="flex items-start gap-2">
-              <span className="text-base">▶</span>
-              <div>
-                <strong className="text-(--foreground) block font-bold">絆ランク100の未来予想線</strong>
-                <span className="text-xs">現在の進捗ペースから絆ランク100に到達する日付を予測して、グラフに破線で描画します。</span>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* 下部アクションエリア（チェックボックスとボタン） */}
         <div className="p-4 bg-(--background)/50 border-t border-dashed border-(--muted)/40 flex flex-col gap-3">
           <label className="flex items-center gap-2 px-1 cursor-pointer select-none text-xs text-(--secondary-foreground) font-bold">
             <input 
@@ -64,14 +89,14 @@ export default function NewFeatureDialog() {
               onChange={(e) => setIsChecked(e.target.checked)}
               className="w-4 h-4 rounded border-(--muted) text-(--primary) focus:ring-(--primary) cursor-pointer"
             />
-            <span>今後このお知らせを表示しない</span>
+            <span>今回のアップデートノートを今後表示しない</span>
           </label>
 
           <button
             onClick={handleClose}
             className="w-full py-3 rounded-xl font-bold bg-(--primary) text-(--primary-foreground) transition-all active:scale-98 cursor-pointer shadow-sm hover:brightness-105"
           >
-            閉じる
+            OK
           </button>
         </div>
 
