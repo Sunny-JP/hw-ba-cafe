@@ -2,12 +2,12 @@ import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
 
 const cspHeader = `
-default-src 'self';
+    default-src 'self';
     script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.onesignal.com https://onesignal.com https://static.cloudflareinsights.com https://www.googletagmanager.com;
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: https://lh3.googleusercontent.com https://cdn.discordapp.com https://*.onesignal.com https://www.google-analytics.com https://www.googletagmanager.com;
     font-src 'self';
-    connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.onesignal.com https://onesignal.com https://cloudflareinsights.com https://www.google-analytics.com;
+    connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.onesignal.com https://onesignal.com https://cloudflareinsights.com https://static.cloudflareinsights.com https://www.google-analytics.com https://www.googletagmanager.com https://cdn.discordapp.com;
     object-src 'none';
     base-uri 'self';
     upgrade-insecure-requests;
