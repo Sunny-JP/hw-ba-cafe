@@ -16,6 +16,12 @@
 		"NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiYmlteXNla3p3Y3ZxbGxvYmR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczMDA3NjIsImV4cCI6MjA4Mjg3Njc2Mn0.zSUXB_b5foOVNp8KZaixam-nO74D38dJH0XPasvFYlM",
 		"NEXT_PUBLIC_ONESIGNAL_APP_ID": "04507e22-6ec2-44cf-9e5c-d37b1ab2d5e7"
   },
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  },
 	"services": [
 		{
 			// Self-reference service binding, the service name must match the worker name

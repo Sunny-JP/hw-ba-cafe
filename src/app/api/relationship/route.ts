@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-export const runtime = 'edge';
-
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,

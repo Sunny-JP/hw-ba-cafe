@@ -3,8 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import { messages } from '@/lib/messages';
 import { shouldScheduleNotification } from '@/lib/timeUtils';
 
-export const runtime = 'edge';
-
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
