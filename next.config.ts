@@ -4,7 +4,6 @@ import withPWAInit from "@ducanh2912/next-pwa";
 const cspHeader = `
     default-src 'self';
     script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.onesignal.com https://onesignal.com https://static.cloudflareinsights.com https://www.googletagmanager.com;
-    worker-src 'self' blob: https://*.onesignal.com https://onesignal.com;
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: https://lh3.googleusercontent.com https://cdn.discordapp.com https://*.onesignal.com https://www.google-analytics.com https://www.googletagmanager.com;
     font-src 'self';
@@ -63,17 +62,16 @@ const nextConfig: NextConfig = {
   turbopack: {}, 
 };
 
-// const withPWA = withPWAInit({
-//   dest: "public",
-//   register: true,
-//   disable: process.env.NODE_ENV === "development",
-//   workboxOptions: {
-//     skipWaiting: true,
-//     clientsClaim: true,
-//     importScripts: ["https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js"],
-//   },
-// });
+const withPWA = withPWAInit({
+  dest: "public",
+  register: true,
+  disable: process.env.NODE_ENV === "development",
+  publicExcludes: ["!OneSignalSDKWorker.js"], 
+  workboxOptions: {
+    skipWaiting: true,
+    clientsClaim: true,
+  },
+});
 
-// export default withPWA(nextConfig);
-export default nextConfig;
+export default withPWA(nextConfig);
 import('@opennextjs/cloudflare').then(m => m.initOpenNextCloudflareForDev());
