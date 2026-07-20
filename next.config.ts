@@ -64,8 +64,9 @@ const nextConfig: NextConfig = {
 
 const withPWA = withPWAInit({
   dest: "public",
-  register: false,
+  register: true,
   disable: process.env.NODE_ENV === "development",
+  publicExcludes: ["!OneSignalSDKWorker.js"], 
   workboxOptions: {
     skipWaiting: true,
     clientsClaim: true,
