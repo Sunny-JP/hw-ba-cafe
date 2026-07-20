@@ -62,16 +62,17 @@ const nextConfig: NextConfig = {
   turbopack: {}, 
 };
 
-const withPWA = withPWAInit({
-  dest: "public",
-  register: true,
-  disable: process.env.NODE_ENV === "development",
-  workboxOptions: {
-    skipWaiting: true,
-    clientsClaim: true,
-    importScripts: ["https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js"],
-  },
-});
+// const withPWA = withPWAInit({
+//   dest: "public",
+//   register: true,
+//   disable: process.env.NODE_ENV === "development",
+//   workboxOptions: {
+//     skipWaiting: true,
+//     clientsClaim: true,
+//     importScripts: ["https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js"],
+//   },
+// });
 
-export default withPWA(nextConfig);
+// export default withPWA(nextConfig);
+export default nextConfig;
 import('@opennextjs/cloudflare').then(m => m.initOpenNextCloudflareForDev());
