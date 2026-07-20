@@ -10,8 +10,9 @@ export default function OneSignalInit() {
         await OneSignal.init({
           appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID!,
           allowLocalhostAsSecureOrigin: true, 
-          // サービスワーカーのパスをルートに固定して認識を安定させる
-          serviceWorkerPath: 'OneSignalSDKWorker.js', 
+          // serviceWorkerPath: 'OneSignalSDKWorker.js', 
+          serviceWorkerPath: "sw.js",
+          serviceWorkerParam: { scope: "/" },
           welcomeNotification: {
             title: "Cafe Timer",
             message: "先生、通知設定が完了しました！",
