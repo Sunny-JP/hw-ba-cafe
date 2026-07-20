@@ -64,13 +64,11 @@ const nextConfig: NextConfig = {
 
 const withPWA = withPWAInit({
   dest: "public",
-  register: true,
-  sw: "OneSignalSDKWorker.js",
+  register: false,
   disable: process.env.NODE_ENV === "development",
   workboxOptions: {
     skipWaiting: true,
     clientsClaim: true,
-    importScripts: ["https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js"],
   },
 });
 
