@@ -498,6 +498,24 @@ export const CHARACTER_LIST = [
     } as Record<string, keyof typeof GIFT_EXP>
   },
   {
+    id: 'ibuki_swimsuit',
+    name: 'イブキ（水着）',
+    giftRatings: {
+      'ボードゲーム「ザ・人生」': 'ss',
+      'ミルフィーユの正統派パフェ': 'sa',
+      '30色の絵の具セット': 'na',
+      '夏模様の浮き輪': 'na',
+      '高級なクッキーセット': 'nb',
+      '天体望遠鏡': 'nb',
+      'MX-レーションC型デザート風味': 'nb',
+      '抹茶味の瓶ラムネ': 'nb',
+      'コスプレ用ぐるぐるメガネ': 'nb',
+      'リボンのついた熊のぬいぐるみ': 'nb',
+      '頭脳開発キューブパズル': 'nb',
+      '大きなホールケーキ': 'nb',
+    } as Record<string, keyof typeof GIFT_EXP>
+  },
+  {
     id: 'iroha',
     name: 'イロハ',
     giftRatings: {
@@ -508,6 +526,24 @@ export const CHARACTER_LIST = [
       'ゲームガールカラー復刻版 ': 'nb',
       '跳躍探偵ウサギ～霧に包まれた温泉での滑落～': 'nb',
       'O-フィット': 'nb',
+      '古典の詩集': 'nb',
+      '百科事典': 'nb',
+    } as Record<string, keyof typeof GIFT_EXP>
+  },
+  {
+    id: 'iroha_swimsuit',
+    name: 'イロハ（水着）',
+    giftRatings: {
+      'ストリートオブヤンキー1巻': 'ss',
+      'サミュエラ「ザ・ビヨンド」': 'sa',
+      '夏模様の浮き輪': 'na',
+      '禁断の愛～許されないからこそ美しく～': 'nb',
+      'ゲームマガジン「ヒットガールズ」': 'nb',
+      'チェリーローズカラーのグロス': 'nb',
+      'お肌を透明にするBBクリーム': 'nb',
+      'ミリタリー用カモフラージュクリーム3種セット': 'nb',
+      '『銃 可愛い 青春』': 'nb',
+      '跳躍探偵ウサギ～霧に包まれた温泉での滑落～': 'nb',
       '古典の詩集': 'nb',
       '百科事典': 'nb',
     } as Record<string, keyof typeof GIFT_EXP>
@@ -1175,6 +1211,22 @@ export const CHARACTER_LIST = [
     } as Record<string, keyof typeof GIFT_EXP>
   },
   {
+    id: 'satsuki_swimsuit',
+    name: 'サツキ（水着）',
+    giftRatings: {
+      'レトロな卵の工芸品': 'ss',
+      'ストリートオブヤンキー1巻': 'sa',
+      '百科事典': 'na',
+      '夏模様の浮き輪': 'na',
+      '禁断の愛～許されないからこそ美しく～': 'nb',
+      'ゲームマガジン「ヒットガールズ」': 'nb',
+      '『銃 可愛い 青春』': 'nb',
+      '跳躍探偵ウサギ～霧に包まれた温泉での滑落～': 'nb',
+      '古典の詩集': 'nb',
+      'ザ・サプリメント': 'nb',
+    } as Record<string, keyof typeof GIFT_EXP>
+  },
+  {
     id: 'saya',
     name: 'サヤ',
     giftRatings: {
@@ -1559,6 +1611,21 @@ export const CHARACTER_LIST = [
       '『銃 可愛い 青春』': 'nb',
       '跳躍探偵ウサギ～霧に包まれた温泉での滑落～': 'nb',
       '世界で最も無駄な絡繰りボックス': 'nb',
+      '百科事典': 'nb',
+    } as Record<string, keyof typeof GIFT_EXP>
+  },
+  {
+    id: 'chiaki_swimsuit',
+    name: 'チアキ（水着）',
+    giftRatings: {
+      'エイ～ブックレア': 'ss',
+      'ストリートオブヤンキー1巻': 'sa',
+      '古典の詩集': 'na',
+      '夏模様の浮き輪': 'na',
+      '禁断の愛～許されないからこそ美しく～': 'nb',
+      'ゲームマガジン「ヒットガールズ」': 'nb',
+      '『銃 可愛い 青春』': 'nb',
+      '跳躍探偵ウサギ～霧に包まれた温泉での滑落～': 'nb',
       '百科事典': 'nb',
     } as Record<string, keyof typeof GIFT_EXP>
   },
@@ -2509,6 +2576,21 @@ export const CHARACTER_LIST = [
       '世界で最も無駄な絡繰りボックス': 'na',
       '高級そうな欲望のつぼ': 'na',
       'コスプレ用ぐるぐるメガネ': 'nb',
+      '食虫植物の植木鉢': 'nb',
+      'ぜんまい式オルゴール': 'nb',
+    } as Record<string, keyof typeof GIFT_EXP>
+  },
+  {
+    id: 'makoto_swimsuit',
+    name: 'マコト（水着）',
+    giftRatings: {
+      'おしゃれなくし': 'ss',
+      'レトロな卵の工芸品': 'sa',
+      '埋蔵金の地図': 'na',
+      '高級そうな欲望のつぼ': 'na',
+      '夏模様の浮き輪': 'na',
+      'コスプレ用ぐるぐるメガネ': 'nb',
+      '世界で最も無駄な絡繰りボックス': 'nb',
       '食虫植物の植木鉢': 'nb',
       'ぜんまい式オルゴール': 'nb',
     } as Record<string, keyof typeof GIFT_EXP>
